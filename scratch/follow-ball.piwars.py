@@ -227,51 +227,55 @@ class ImageCapture(threading.Thread):
                 yield processor.stream
                 processor.event.set()
 
+def main():
 
-# Startup sequence
-print('Setup camera')
-camera = picamera.PiCamera()
-camera.resolution = (imageWidth, imageHeight)
-camera.framerate = frameRate
-imageCentreX = imageWidth / 2.0
-imageCentreY = imageHeight / 2.0
+    # Startup sequence
+    print('Setup camera')
+    camera = picamera.PiCamera()
+    camera.resolution = (imageWidth, imageHeight)
+    camera.framerate = frameRate
+    imageCentreX = imageWidth / 2.0
+    imageCentreY = imageHeight / 2.0
 
-print('Setup the stream processing thread')
-processor = StreamProcessor()
+    print('Setup the stream processing thread')
+    processor = StreamProcessor()
 
-print('Wait ...')
-time.sleep(2)
-captureThread = ImageCapture()
+    print('Wait ...')
+    time.sleep(2)
+    captureThread = ImageCapture()
 
-try:
-    print('Press CTRL+C to quit')
+    try:
+        print('Press CTRL+C to quit')
+        ##    TB.MotorsOff()
+        ##    TB.SetLedShowBattery(True)
+        # Loop indefinitely until we are no longer running
+        while running:
+            # Wait for the interval period
+            # You could have the code do other work in here 🙂
+            time.sleep(1.0)
+            # Disable all drives
     ##    TB.MotorsOff()
-    ##    TB.SetLedShowBattery(True)
-    # Loop indefinitely until we are no longer running
-    while running:
-        # Wait for the interval period
-        # You could have the code do other work in here 🙂
-        time.sleep(1.0)
-        # Disable all drives
-##    TB.MotorsOff()
-except KeyboardInterrupt:
-    # CTRL+C exit, disable all drives
-    print('\nUser shutdown')
-##    TB.MotorsOff()
-except:
-    # Unexpected error, shut down!
-    e = sys.exc_info()[0]
-    print
-    print(e)
-    print('\nUnexpected error, shutting down!')
-##    TB.MotorsOff()
-# Tell each thread to stop, and wait for them to end
-running = False
-captureThread.join()
-processor.terminated = True
-processor.join()
-del camera
-##TB.MotorsOff()
-##TB.SetLedShowBattery(False)
-##TB.SetLeds(0,0,0)
-print('Program terminated.')
+    except KeyboardInterrupt:
+        # CTRL+C exit, disable all drives
+        print('\nUser shutdown')
+    ##    TB.MotorsOff()
+    except:
+        # Unexpected error, shut down!
+        e = sys.exc_info()[0]
+        print
+        print(e)
+        print('\nUnexpected error, shutting down!')
+    ##    TB.MotorsOff()
+    # Tell each thread to stop, and wait for them to end
+    running = False
+    captureThread.join()
+    processor.terminated = True
+    processor.join()
+    del camera
+    ##TB.MotorsOff()
+    ##TB.SetLedShowBattery(False)
+    ##TB.SetLeds(0,0,0)
+    print('Program terminated.')
+
+if __name__ == '__main__':
+    main(*sys.argv[1:])

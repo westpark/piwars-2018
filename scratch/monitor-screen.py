@@ -1,6 +1,7 @@
 import os, sys
 import collections
 import io
+import threading
 import time
 
 import pygame
@@ -19,17 +20,14 @@ class Monitor(object):
 
     size = width, height = 800, 600
     font = pygame.font.Font("piwars.ttf", 18) # copied from arial.ttf
+    font_h = font.get_height()
+    log_font = pygame.font.Font("piwars.ttf", 14)
+    log_font_h = log_font.get_height()
     bg = pygame.Color(0, 0, 0, 0xff)
     text_h = 30
     text_fg = pygame.Color(0xff, 0xff, 0xff, 0xff)
     text_bg = pygame.Color(0x00, 0x00, 0xff, 0xff)
     border_w = 4
-    levels_fg = {
-        "debug" : pygame.Color(0xcc, 0xcc, 0xcc, 0xff),
-        "info" : pygame.Color(0xff, 0xff, 0xff, 0xff),
-        "warning" : pygame.Color(0xff, 0xa5, 0x00, 0xff),
-        "error" : pygame.Color(0xff, 0x00, 0x00, 0xff)
-    }
 
     channel_names = ["camera", "distance-a", "distance-b", "line", "logs"]
     rects = {}
@@ -37,10 +35,10 @@ class Monitor(object):
     rects["distance-a"] = distance_a_rect = pygame.Rect(camera_rect.left, camera_rect.top + camera_rect.height + border_w, camera_rect.width, text_h)
     rects["distance-b"] = distance_b_rect = pygame.Rect(distance_a_rect.left, distance_a_rect.top + distance_a_rect.height + border_w, distance_a_rect.width, text_h)
     rects["line"] = line_rect = pygame.Rect(distance_b_rect.left, distance_b_rect.top + distance_b_rect.height + border_w, distance_b_rect.width, text_h)
-    rects["logs"] = logs_rect = pygame.Rect(camera_rect.left + camera_rect.width + border_w, camera_rect.top, width - (camera_rect.left + camera_rect.width + border_w), height)
+    rects["logs"] = logs_rect = pygame.Rect(camera_rect.left + camera_rect.width + (3 * border_w), camera_rect.top, width - (camera_rect.left + camera_rect.width + (3 * border_w)), height)
     
     def __init__(self):
-        self.log_queue = collections.deque(maxlen=20)
+        self.log_queue = collections.deque(maxlen=self.height // self.log_font_h)
         self.channels = {}
         for name in self.channel_names:
             address = nw0.discover("piwars/%s" % name, wait_for_s=3)
@@ -48,7 +46,12 @@ class Monitor(object):
                 self.channels[name] = address
             else:
                 print("WARNING: No channel found for", name)
-    
+        
+        self.channel_locks = {}
+        for name in self.channel_names:
+            self.channel_locks[name] = threading.Lock()
+        self.channel_values = {}
+
     def rendered_text(self, text, rect):
         surface = pygame.Surface(rect.size)
         surface.fill(self.text_fg)
@@ -59,24 +62,39 @@ class Monitor(object):
     
     def update_from_news_distance(self, name, info):
         distance = nw0.sockets._unserialise(info)
+        with self.channel_locks[name]:
+            self.channel_values[name] = distance
         return self.rendered_text("%s: %3.2fcm" % (name_from_code(name), distance), self.rects[name])
     
     def update_from_news_line(self, name, info):
         light_or_dark = nw0.sockets._unserialise(info)
+        with self.channel_locks[name]:
+            self.channel_values[name] = light_or_dark
         return self.rendered_text("Line? %s" % light_or_dark, self.rects[name])
     
     def update_from_news_camera(self, name, info):
+        print("%d bytes from camera" % len(info))
+        with self.channel_locks[name]:
+            self.channel_values[name] = info
         with io.BytesIO(info) as buffer:
             return pygame.image.load(buffer, "camera.jpg").convert()
     
     def update_from_news_logs(self, name, info):
+        levels_fg = {
+            "debug" : pygame.Color(0x66, 0x66, 0x66, 0xff),
+            "info" : pygame.Color(0xff, 0xff, 0xff, 0xff),
+            "warning" : pygame.Color(0xff, 0xa5, 0x00, 0xff),
+            "error" : pygame.Color(0xff, 0x00, 0x00, 0xff)
+        }
+        with self.channel_locks[name]:
+            #~ self.channel_values.setdefault(collections.deque(maxlen=self.height // self.log_font_h)).append(nw0.sockets._unserialise(info))
+            pass
         self.log_queue.append(nw0.sockets._unserialise(info))
-        font_h = self.font.get_height()
         logs_rect = self.rects["logs"]
         surface = pygame.Surface(logs_rect.size)
         for n, (level, text) in enumerate(self.log_queue):
-            rendered = self.font.render(text, True, self.levels_fg[level], self.bg)
-            surface.blit(rendered, (0, n * font_h))
+            rendered = self.log_font.render(text, True, levels_fg[level], self.bg)
+            surface.blit(rendered, (0, n * self.log_font_h))
         return surface
     
     def update_from_news(self, name, topic, info):

@@ -89,6 +89,7 @@ class CameraThread(NewsThread):
                     buffer.seek(0)
                     camera.capture(buffer, "jpeg")
                     yield buffer.getvalue()
+                    time.sleep(random.randint(5, 10))
 
 class LoggingThread(NewsThread):
     

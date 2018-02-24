@@ -20,6 +20,7 @@ class Monitor(object):
     size = width, height = 640, 480
     font = pygame.font.Font("piwars.ttf", 18) # copied from arial.ttf
     bg = pygame.Color(0, 0, 0, 0xff)
+    text_h = 30
     text_fg = pygame.Color(0xff, 0xff, 0xff, 0xff)
     text_bg = pygame.Color(0x00, 0x00, 0xff, 0xff)
     border_w = 4
@@ -31,13 +32,12 @@ class Monitor(object):
     }
 
     channel_names = ["camera", "distance-a", "distance-b", "line", "logs"]
-    rects = {
-        "camera" : pygame.Rect(0, 0, 324, 244),
-        "distance-a" : pygame.Rect(0, 250, 320, 30),
-        "distance-b" : pygame.Rect(0, 290, 320, 30),
-        "line" : pygame.Rect(0, 330, 320, 30),
-        "logs" : pygame.Rect(330, 0, 310, 480)
-    }
+    rects = {}
+    rects["camera"] = camera_rect = pygame.Rect(0, 0, width / 3, height / 2)
+    rects["distance-a"] = distance_a_rect = pygame.Rect(camera_rect.left, camera_rect.top + camera_rect.height + border_w, camera_rect.width, text_h)
+    rects["distance-b"] = distance_b_rect = pygame.Rect(distance_a_rect.left, distance_a_rect.top + distance_a_rect.height + border_w, distance_a_rect.width, text_h)
+    rects["line"] = line_rect = pygame.Rect(distance_b_rect.left, distance_b_rect.top + distance_b_rect.height + border_w, distance_b_rect.width, text_h)
+    rects["logs"] = logs_rect = pygame.Rect(camera_rect.left + camera_rect.width + border_w, camera_rect.top, width - (camera_rect.left + camera_rect.width + border_w), height)
     
     def __init__(self):
         self.log_queue = collections.deque(maxlen=20)

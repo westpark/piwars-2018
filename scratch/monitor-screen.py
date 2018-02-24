@@ -17,7 +17,7 @@ def name_from_code(code):
 
 class Monitor(object):
 
-    size = width, height = 640, 480
+    size = width, height = 800, 600
     font = pygame.font.Font("piwars.ttf", 18) # copied from arial.ttf
     bg = pygame.Color(0, 0, 0, 0xff)
     text_h = 30

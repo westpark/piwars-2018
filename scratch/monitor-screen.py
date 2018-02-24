@@ -11,6 +11,9 @@ pygame.init()
 
 import networkzero as nw0
 
+def name_from_code(code):
+    return " ".join(w.title() for w in code.split("-"))
+
 class Monitor(object):
 
     size = width, height = 640, 480
@@ -36,7 +39,7 @@ class Monitor(object):
     
     def update_from_news_distance(self, name, info):
         t, distance = info
-        return self.font.render("%s: %3.2fcm" % (name, distance), True, self.text_fg, self.text_bg)
+        return self.font.render("%s: %3.2fcm" % (name_from_code(name), distance), True, self.text_fg, self.text_bg)
     
     def update_from_news_line(self, name, info):
         t, light_or_dark = info

@@ -69,13 +69,14 @@ autoFullSpeedArea = 300  # Target size at which we use the maximum allowed outpu
 
 # Image stream processing thread
 class StreamProcessor(threading.Thread):
-    def __init__(self):
+    def __init__(self, camera, stop_event):
         super(StreamProcessor, self).__init__()
         self.stream = picamera.array.PiRGBArray(camera)
+        self.stop_event = stop_event
+        self._image_is_present_event = threading.Event()
         self.event = threading.Event()
         self.terminated = False
         self.start()
-        self.begin = 0
 
     def run(self):
         # This method runs in a separate thread
@@ -91,9 +92,15 @@ class StreamProcessor(threading.Thread):
                     self.stream.seek(0)
                     self.stream.truncate()
                     self.event.clear()
+    
+    def image_is_present(self):
+        return 
 
     # Image processing function
     def ProcessImage(self, image, colour):
+        print("Processing image for", colour)
+        return 
+        
         # View the original image seen by the camera.
         if debug:
             cv2.imshow('original', image)
@@ -203,32 +210,30 @@ class StreamProcessor(threading.Thread):
 
 # Image capture thread
 class ImageCapture(threading.Thread):
-    def __init__(self):
+    def __init__(self, camera, processor, stop_event):
         super(ImageCapture, self).__init__()
+        self.camera = camera
+        self.processor = processor
+        self.stop_event = stop_event
         self.start()
 
     def run(self):
-        global camera
         global processor
         print('Start the stream using the video port')
-        camera.capture_sequence(self.TriggerStream(), format='bgr', use_video_port=True)
+        self.camera.capture_sequence(self.TriggerStream(), format='bgr', use_video_port=True)
         print('Terminating camera processing...')
-        processor.terminated = True
-        processor.join()
+        self.processor.terminated = True
+        self.processor.join()
         print('Processing terminated.')
 
     # Stream delegation loop
     def TriggerStream(self):
-        global running
-        while running:
-            if processor.event.is_set():
-                time.sleep(0.01)
-            else:
-                yield processor.stream
-                processor.event.set()
+        while not stop_event.is_set():
+            self.processor.event.wait()
+            yield self.processor.stream
+            self.processor.event.set()
 
 def main():
-
     # Startup sequence
     print('Setup camera')
     camera = picamera.PiCamera()
@@ -238,11 +243,12 @@ def main():
     imageCentreY = imageHeight / 2.0
 
     print('Setup the stream processing thread')
-    processor = StreamProcessor()
+    stop_event = threading.Event()
+    processor = StreamProcessor(camera, stop_event)
 
     print('Wait ...')
     time.sleep(2)
-    captureThread = ImageCapture()
+    captureThread = ImageCapture(camera, processor, stop_event)
 
     try:
         print('Press CTRL+C to quit')

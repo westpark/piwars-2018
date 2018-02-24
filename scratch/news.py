@@ -14,6 +14,8 @@ def as_code(name):
 
 class NewsThread(threading.Thread):
     
+    topic = "piwars"
+    
     def __init__(self, name, queue, finish_event, *args, **kwargs):
         super(NewsThread, self).__init__(name=name, *args, **kwargs)
         self.news = nw0.advertise("piwars/%s" % as_code(name))
@@ -23,6 +25,12 @@ class NewsThread(threading.Thread):
     def finished(self):
         return self._finish_event.is_set()
     
+    def queue_result(self, t, value):
+        self.queue.put((self.name, t, value))
+    
+    def send_news(self, value):
+        nw0.send_news_to(self.news, self.topic, value)
+    
     def run(self):
         values = self.values()
         while not self.finished():
@@ -31,18 +39,8 @@ class NewsThread(threading.Thread):
             except StopIteration:
                 break
             t = time.time()
-            if self.name == "Camera":
-                queue_value = repr(value)[:20]
-                with io.BytesIO(value) as data:
-                    image = Image.open(data)
-                    image.thumbnail((320, 240))
-                with io.BytesIO() as data:
-                    image.save(data, "jpeg")
-                    news_value = nw0.bytes_to_string(data.getvalue())
-            else:
-                queue_value = news_value = value
-            self.queue.put((self.name, t, queue_value))
-            nw0.send_news_to(self.news, self.name, (t, news_value))
+            self.queue_result(t, value)
+            self.send_news(value)
     
     def values(self):
         """The values method will be, typically, a generator, yielding
@@ -52,20 +50,37 @@ class NewsThread(threading.Thread):
 
 class DistanceThread(NewsThread):
     
+    topic = "distance"
+    
     def values(self):
         while not self.finished():
             yield random.random()
-            time.sleep(0.5 + (0.1 * random.randint(0, 3)))
+            time.sleep(0.1 * random.randint(0, 3))
 
 class LineThread(NewsThread):
+    
+    topic = "line"
     
     def values(self):
         while not self.finished():
             yield random.choice(["light", "dark"])
-            time.sleep(0.5 + (0.1 * random.randint(0, 3)))
+            time.sleep(0.1 * random.randint(0, 3))
 
 class CameraThread(NewsThread):
     
+    topic = "camera"
+
+    def queue_result(self, t, value):
+        self.queue.put((self.name, t, repr(value[:20])))
+        
+    def send_news(self, value):
+        with io.BytesIO(value) as data:
+            image = Image.open(data)
+            image.thumbnail((320, 240))
+        with io.BytesIO() as data:
+            image.save(data, "jpeg")
+            nw0.send_news_to(self.news, self.topic, data.getvalue())
+
     def values(self):
         with picamera.PiCamera() as camera:
             camera.resolution = 1024, 768
@@ -74,7 +89,16 @@ class CameraThread(NewsThread):
                     buffer.seek(0)
                     camera.capture(buffer, "jpeg")
                     yield buffer.getvalue()
-                    time.sleep(0.5 + (0.1 * random.randint(0, 3)))
+
+class LoggingThread(NewsThread):
+    
+    topic = "logs"
+    levels = "debug", "info", "warning", "error"
+    
+    def values(self):
+        while not self.finished():
+            yield random.choice(self.levels), time.asctime()
+            time.sleep(random.randint(2, 5))
 
 def watch_queues(queues):
     print("Watching queues...")
@@ -93,6 +117,7 @@ def main():
     threads.append(DistanceThread("Distance B", queue.Queue(), finish_event))
     threads.append(LineThread("Line", queue.Queue(), finish_event))
     threads.append(CameraThread("Camera", queue.Queue(), finish_event))
+    threads.append(LoggingThread("Logs", queue.Queue(), finish_event))
 
     print("Firing up threads..")
     for thread in threads:

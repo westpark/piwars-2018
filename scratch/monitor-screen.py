@@ -38,26 +38,25 @@ class Monitor(object):
                 self.channels[name] = address
     
     def update_from_news_distance(self, name, info):
-        t, distance = info
+        distance = nw0.sockets._unserialise(info)
         return self.font.render("%s: %3.2fcm" % (name_from_code(name), distance), True, self.text_fg, self.text_bg)
     
     def update_from_news_line(self, name, info):
-        t, light_or_dark = info
+        light_or_dark = nw0.sockets._unserialise(info)
         return self.font.render("Line? %s" % light_or_dark, True, self.text_fg, self.text_bg)
     
     def update_from_news_camera(self, name, info):
-        t, image_data = info
-        image_bytes = nw0.string_to_bytes(image_data)
-        with io.BytesIO(image_bytes) as buffer:
+        with io.BytesIO(info) as buffer:
             return pygame.image.load(buffer, "camera.jpg")
     
     def update_from_news(self, name, topic, info):
         function = getattr(self, "update_from_news_%s" % topic.lower())
         rendered = function(name, info)
-        return rendered, self.rects[name].topleft
+        return rendered, self.rects[name]
     
     def run(self):
         screen = pygame.display.set_mode(self.size)
+        
         rects_to_update = []
         while True:
             for event in pygame.event.get():
@@ -66,14 +65,15 @@ class Monitor(object):
 
             rects_to_update.clear()
             for name, channel in self.channels.items():
-                topic, info = nw0.wait_for_news_from(channel, wait_for_s=0)
+                topic, info = nw0.wait_for_news_from(channel, wait_for_s=0, is_raw=True)
                 if topic is None:
                     continue
                 rects_to_update.append(self.update_from_news(name, topic, info))
 
             for surface, rect in rects_to_update:
-                screen.blit(surface, rect)
-            pygame.display.flip()
+                screen.blit(surface, rect.topleft)
+            updated_rects = [rect for _, rect in rects_to_update]
+            pygame.display.update(updated_rects)
     
 def main():
     monitor = Monitor()

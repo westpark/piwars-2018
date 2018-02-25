@@ -12,6 +12,9 @@ import networkzero as nw0
 def as_code(name):
     return "-".join(name.lower().split())
 
+with open("two-cities.txt") as f:
+    two_cities = list(line.strip() for line in f if line.strip())
+
 class NewsThread(threading.Thread):
     
     topic = "piwars"
@@ -98,7 +101,7 @@ class LoggingThread(NewsThread):
     
     def values(self):
         while not self.finished():
-            yield random.choice(self.levels), time.asctime()
+            yield random.choice(self.levels), random.choice(two_cities)
             time.sleep(random.randint(2, 5))
 
 def watch_queues(queues):

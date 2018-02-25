@@ -73,7 +73,6 @@ class Monitor(object):
         return self.rendered_text("Line? %s" % light_or_dark, self.rects[name])
     
     def update_from_news_camera(self, name, info):
-        print("%d bytes from camera" % len(info))
         with self.channel_locks[name]:
             self.channel_values[name] = info
         with io.BytesIO(info) as buffer:

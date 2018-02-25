@@ -78,7 +78,8 @@ class Monitor(object):
         logs_rect = self.rects["logs"]
         surface = pygame.Surface(logs_rect.size)
         for n, (level, text) in enumerate(self.log_queue):
-            rendered = self.log_font.render(text, True, levels_fg[level], self.bg)
+            line = "%s: %s" % (level.upper(), text)
+            rendered = self.log_font.render(line, True, levels_fg[level], self.bg)
             surface.blit(rendered, (0, n * self.log_font_h))
         return surface
     

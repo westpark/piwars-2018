@@ -46,11 +46,6 @@ class Monitor(object):
                 self.channels[name] = address
             else:
                 print("WARNING: No channel found for", name)
-        
-        self.channel_locks = {}
-        for name in self.channel_names:
-            self.channel_locks[name] = threading.Lock()
-        self.channel_values = {}
 
     def rendered_text(self, text, rect):
         surface = pygame.Surface(rect.size)
@@ -62,19 +57,13 @@ class Monitor(object):
     
     def update_from_news_distance(self, name, info):
         distance = nw0.sockets._unserialise(info)
-        with self.channel_locks[name]:
-            self.channel_values[name] = distance
         return self.rendered_text("%s: %3.2fcm" % (name_from_code(name), distance), self.rects[name])
     
     def update_from_news_line(self, name, info):
         light_or_dark = nw0.sockets._unserialise(info)
-        with self.channel_locks[name]:
-            self.channel_values[name] = light_or_dark
         return self.rendered_text("Line? %s" % light_or_dark, self.rects[name])
     
     def update_from_news_camera(self, name, info):
-        with self.channel_locks[name]:
-            self.channel_values[name] = info
         with io.BytesIO(info) as buffer:
             return pygame.image.load(buffer, "camera.jpg").convert()
     
@@ -85,9 +74,6 @@ class Monitor(object):
             "warning" : pygame.Color(0xff, 0xa5, 0x00, 0xff),
             "error" : pygame.Color(0xff, 0x00, 0x00, 0xff)
         }
-        with self.channel_locks[name]:
-            #~ self.channel_values.setdefault(collections.deque(maxlen=self.height // self.log_font_h)).append(nw0.sockets._unserialise(info))
-            pass
         self.log_queue.append(nw0.sockets._unserialise(info))
         logs_rect = self.rects["logs"]
         surface = pygame.Surface(logs_rect.size)

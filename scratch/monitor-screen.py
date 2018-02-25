@@ -36,6 +36,12 @@ class Monitor(object):
     rects["distance-b"] = distance_b_rect = pygame.Rect(distance_a_rect.left, distance_a_rect.top + distance_a_rect.height + border_w, distance_a_rect.width, text_h)
     rects["line"] = line_rect = pygame.Rect(distance_b_rect.left, distance_b_rect.top + distance_b_rect.height + border_w, distance_b_rect.width, text_h)
     rects["logs"] = logs_rect = pygame.Rect(camera_rect.left + camera_rect.width + (3 * border_w), camera_rect.top, width - (camera_rect.left + camera_rect.width + (3 * border_w)), height)
+    levels_fg = {
+        "debug" : pygame.Color(0x66, 0x66, 0x66, 0xff),
+        "info" : pygame.Color(0xff, 0xff, 0xff, 0xff),
+        "warning" : pygame.Color(0xff, 0xa5, 0x00, 0xff),
+        "error" : pygame.Color(0xff, 0x00, 0x00, 0xff)
+    }
     
     def __init__(self):
         self.log_queue = collections.deque(maxlen=self.height // self.log_font_h)
@@ -52,6 +58,14 @@ class Monitor(object):
             self.channel_locks[name] = threading.Lock()
         self.channel_values = {}
 
+    def get_channel_value(self, name, default=None):
+        with self.channel_locks[name]:
+            return self.channel_values.get(name, default)
+    
+    def set_channel_value(self, name, value):
+        with self.channel_locks[name]:
+            self.channel_values[name] = value
+    
     def rendered_text(self, text, rect):
         surface = pygame.Surface(rect.size)
         surface.fill(self.text_fg)
@@ -61,65 +75,78 @@ class Monitor(object):
         return surface
     
     def update_from_news_distance(self, name, info):
-        distance = nw0.sockets._unserialise(info)
-        with self.channel_locks[name]:
-            self.channel_values[name] = distance
-        return self.rendered_text("%s: %3.2fcm" % (name_from_code(name), distance), self.rects[name])
+        self.set_channel_value(nw0.sockets._unserialise(info))
+    
+    def render_from_news_distance(self, name):
+        value = self.get_channel_value(name)
+        if value:
+            return self.rendered_text("%s: %3.2fcm" % (name_from_code(name), value), self.rects[name])
     
     def update_from_news_line(self, name, info):
-        light_or_dark = nw0.sockets._unserialise(info)
-        with self.channel_locks[name]:
-            self.channel_values[name] = light_or_dark
-        return self.rendered_text("Line? %s" % light_or_dark, self.rects[name])
+        self.set_channel_value(nw0.sockets._unserialise(info))
+    
+    def render_from_news_line(self, name):
+        value = self.get_channel_value(name)
+        if value:
+            return self.rendered_text("Line? %s" % value, self.rects[name])
     
     def update_from_news_camera(self, name, info):
-        with self.channel_locks[name]:
-            self.channel_values[name] = info
-        with io.BytesIO(info) as buffer:
-            return pygame.image.load(buffer, "camera.jpg").convert()
+        self.set_channel_value(name, info)
+    
+    def render_from_news_camera(self, name):
+        value = self.get_channel_value(name)
+        if value:
+            with io.BytesIO() as buffer:
+                return pygame.image.load(buffer, "camera.jpg").convert()
     
     def update_from_news_logs(self, name, info):
-        levels_fg = {
-            "debug" : pygame.Color(0x66, 0x66, 0x66, 0xff),
-            "info" : pygame.Color(0xff, 0xff, 0xff, 0xff),
-            "warning" : pygame.Color(0xff, 0xa5, 0x00, 0xff),
-            "error" : pygame.Color(0xff, 0x00, 0x00, 0xff)
-        }
         with self.channel_locks[name]:
-            #~ self.channel_values.setdefault(collections.deque(maxlen=self.height // self.log_font_h)).append(nw0.sockets._unserialise(info))
-            pass
-        self.log_queue.append(nw0.sockets._unserialise(info))
-        logs_rect = self.rects["logs"]
-        surface = pygame.Surface(logs_rect.size)
-        for n, (level, text) in enumerate(self.log_queue):
-            rendered = self.log_font.render(text, True, levels_fg[level], self.bg)
-            surface.blit(rendered, (0, n * self.log_font_h))
-        return surface
+            queue = self.channel_values.setdefault(name, collections.deque(maxlen=self.height // self.log_font_h))
+            queue.append(nw0.sockets._unserialise(info))
+
+    def render_from_news_logs(self, name):
+        queue = self.get_channel_value(name)
+        if queue:
+            logs_rect = self.rects["logs"]
+            surface = pygame.Surface(logs_rect.size)
+            for n, (level, text) in enumerate(queue):
+                rendered = self.log_font.render(text, True, self.levels_fg[level], self.bg)
+                surface.blit(rendered, (0, n * self.log_font_h))
+            return surface
     
     def update_from_news(self, name, topic, info):
         function = getattr(self, "update_from_news_%s" % topic.lower())
-        rendered = function(name, info)
-        return rendered, self.rects[name]
+        function(name, info)
+    
+    def render_from_news(self):
+        prefix = "render_from_news_"
+        for function_name in dir(self):
+            if function_name.startswith(prefix):
+                name = function_name[len(prefix):]
+                function = getattr(self, function_name)
+                surface = function(name)
+                if surface:
+                    yield surface, self.rects[name]
     
     def run(self):
         screen = pygame.display.set_mode(self.size)
         
-        rects_to_update = []
+        updated_rects = []
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT: 
                     sys.exit()
-
-            rects_to_update.clear()
+            
             for name, channel in self.channels.items():
                 topic, info = nw0.wait_for_news_from(channel, wait_for_s=0, is_raw=True)
                 if topic is None:
                     continue
-                rects_to_update.append(self.update_from_news(name, topic, info))
+                self.update_from_news(name, topic, info)
 
-            for surface, rect in rects_to_update:
+            updated_rects.clear()
+            for surface, rect in self.render_from_news():
                 screen.blit(surface, rect)
-            updated_rects = [rect for _, rect in rects_to_update]
+                updated_rects.append(rect)
             pygame.display.update(updated_rects)
     
 def main():

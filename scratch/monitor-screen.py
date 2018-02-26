@@ -14,7 +14,7 @@ pygame.init()
 import networkzero as nw0
 
 def name_from_code(code):
-    return " ".join(w.title() for w in code.split("-"))
+    return " ".join(w.title() for w in code.split("/"))
 
 class Monitor(object):
 
@@ -29,11 +29,11 @@ class Monitor(object):
     text_bg = pygame.Color(0x00, 0x00, 0xff, 0xff)
     border_w = 4
 
-    channel_names = ["camera", "distance-a", "distance-b", "line", "logs"]
+    channel_names = ["camera", "distance/a", "distance/b", "line", "logs"]
     rects = {}
     rects["camera"] = camera_rect = pygame.Rect(0, 0, width / 3, height / 2)
-    rects["distance-a"] = distance_a_rect = pygame.Rect(camera_rect.left, camera_rect.top + camera_rect.height + border_w, camera_rect.width, text_h)
-    rects["distance-b"] = distance_b_rect = pygame.Rect(distance_a_rect.left, distance_a_rect.top + distance_a_rect.height + border_w, distance_a_rect.width, text_h)
+    rects["distance/a"] = distance_a_rect = pygame.Rect(camera_rect.left, camera_rect.top + camera_rect.height + border_w, camera_rect.width, text_h)
+    rects["distance/b"] = distance_b_rect = pygame.Rect(distance_a_rect.left, distance_a_rect.top + distance_a_rect.height + border_w, distance_a_rect.width, text_h)
     rects["line"] = line_rect = pygame.Rect(distance_b_rect.left, distance_b_rect.top + distance_b_rect.height + border_w, distance_b_rect.width, text_h)
     rects["logs"] = logs_rect = pygame.Rect(camera_rect.left + camera_rect.width + (3 * border_w), camera_rect.top, width - (camera_rect.left + camera_rect.width + (3 * border_w)), height)
     levels_fg = {
@@ -74,37 +74,23 @@ class Monitor(object):
         surface.blit(rendered_text, (2 + self.border_w, 2 + self.border_w))
         return surface
     
-    def update_from_news_distance(self, name, info):
-        self.set_channel_value(nw0.sockets._unserialise(info))
-    
-    def render_from_news_distance(self, name):
+    def render_from_distance(self, name):
         value = self.get_channel_value(name)
         if value:
             return self.rendered_text("%s: %3.2fcm" % (name_from_code(name), value), self.rects[name])
     
-    def update_from_news_line(self, name, info):
-        self.set_channel_value(nw0.sockets._unserialise(info))
-    
-    def render_from_news_line(self, name):
+    def render_from_line(self, name):
         value = self.get_channel_value(name)
         if value:
             return self.rendered_text("Line? %s" % value, self.rects[name])
     
-    def update_from_news_camera(self, name, info):
-        self.set_channel_value(name, info)
-    
-    def render_from_news_camera(self, name):
+    def render_from_camera(self, name):
         value = self.get_channel_value(name)
         if value:
-            with io.BytesIO() as buffer:
+            with io.BytesIO(value) as buffer:
                 return pygame.image.load(buffer, "camera.jpg").convert()
     
-    def update_from_news_logs(self, name, info):
-        with self.channel_locks[name]:
-            queue = self.channel_values.setdefault(name, collections.deque(maxlen=self.height // self.log_font_h))
-            queue.append(nw0.sockets._unserialise(info))
-
-    def render_from_news_logs(self, name):
+    def render_from_logs(self, name):
         queue = self.get_channel_value(name)
         if queue:
             logs_rect = self.rects["logs"]
@@ -114,19 +100,33 @@ class Monitor(object):
                 surface.blit(rendered, (0, n * self.log_font_h))
             return surface
     
-    def update_from_news(self, name, topic, info):
-        function = getattr(self, "update_from_news_%s" % topic.lower())
-        function(name, info)
+    def render_from(self):
+        prefix = "render_from_"
+        for name in self.channels:
+            base, _, suffix = name.partition("/")
+            function_name = prefix + base
+            function = getattr(self, function_name)
+            surface = function(name)
+            if surface:
+                yield surface, self.rects[name]
     
-    def render_from_news(self):
-        prefix = "render_from_news_"
-        for function_name in dir(self):
-            if function_name.startswith(prefix):
-                name = function_name[len(prefix):]
-                function = getattr(self, function_name)
-                surface = function(name)
-                if surface:
-                    yield surface, self.rects[name]
+    def update_from_distance(self, name, info):
+        self.set_channel_value(name, nw0.sockets._unserialise(info))
+    
+    def update_from_line(self, name, info):
+        self.set_channel_value(name, nw0.sockets._unserialise(info))
+    
+    def update_from_camera(self, name, info):
+        self.set_channel_value(name, info)
+    
+    def update_from_logs(self, name, info):
+        with self.channel_locks[name]:
+            queue = self.channel_values.setdefault(name, collections.deque(maxlen=self.height // self.log_font_h))
+            queue.append(nw0.sockets._unserialise(info))
+
+    def update_from(self, name, topic, info):
+        function = getattr(self, "update_from_%s" % topic.lower())
+        function(name, info)
     
     def run(self):
         screen = pygame.display.set_mode(self.size)
@@ -141,17 +141,13 @@ class Monitor(object):
                 topic, info = nw0.wait_for_news_from(channel, wait_for_s=0, is_raw=True)
                 if topic is None:
                     continue
-                self.update_from_news(name, topic, info)
+                self.update_from(name, topic, info)
 
             updated_rects.clear()
-            for surface, rect in self.render_from_news():
+            for surface, rect in self.render_from():
                 screen.blit(surface, rect)
                 updated_rects.append(rect)
             pygame.display.update(updated_rects)
-    
-def main():
-    monitor = Monitor()
-    monitor.run()
 
 if __name__ == '__main__':
-    main(*sys.argv[1:])
+    Monitor().run()

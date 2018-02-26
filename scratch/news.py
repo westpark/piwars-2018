@@ -10,7 +10,7 @@ from PIL import Image
 import networkzero as nw0
 
 def as_code(name):
-    return "-".join(name.lower().split())
+    return "/".join(name.lower().split())
 
 with open("two-cities.txt") as f:
     two_cities = list(line.strip() for line in f if line.strip())

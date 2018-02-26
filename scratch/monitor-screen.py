@@ -130,6 +130,7 @@ class Monitor(object):
     
     def run(self):
         screen = pygame.display.set_mode(self.size)
+        clock = pygame.time.Clock()
         
         updated_rects = []
         while True:
@@ -143,6 +144,7 @@ class Monitor(object):
                     continue
                 self.update_from(name, topic, info)
 
+            clock.tick(30)
             updated_rects.clear()
             for surface, rect in self.render_from():
                 screen.blit(surface, rect)

@@ -10,7 +10,7 @@ from PIL import Image
 import networkzero as nw0
 
 def as_code(name):
-    return "-".join(name.lower().split())
+    return "/".join(name.lower().split())
 
 class NewsThread(threading.Thread):
     

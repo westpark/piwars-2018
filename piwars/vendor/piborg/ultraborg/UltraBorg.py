@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# coding: latin-1
+# coding: utf-8
 """
 This module is designed to communicate with the UltraBorg
 
@@ -241,10 +241,8 @@ Command codes can be found at the top of UltraBorg.py, data is a list of 0 or mo
 
 Under most circumstances you should use the appropriate function instead of RawWrite
         """
-        rawOutput = chr(command)
-        for singleByte in data:
-            rawOutput += chr(singleByte)
-        self.i2cWrite.write(rawOutput)
+        output = bytes([command]) + bytes(data)
+        self.i2cWrite.write(output)
 
 
     def RawRead(self, command, length, retryCount = 3):
@@ -262,10 +260,7 @@ Under most circumstances you should use the appropriate function instead of RawR
         while retryCount > 0:
             self.RawWrite(command, [])
             time.sleep(0.000001)
-            rawReply = self.i2cRead.read(length)
-            reply = []
-            for singleByte in rawReply:
-                reply.append(ord(singleByte))
+            reply = self.i2cRead.read(length)
             if command == reply[0]:
                 break
             else:

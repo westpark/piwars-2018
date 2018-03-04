@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+   #!/usr/bin/env python
 # coding: utf-8
 """
 This module is designed to communicate with the ThunderBorg
@@ -654,7 +654,7 @@ state = GetLedShowBattery()
 Gets if the system is using the LEDs to show the current battery level, true for enabled, false for disabled
 If enabled the LED colours will be ignored and will use the current battery reading instead
 This sweeps from fully green for maximum voltage (35 V) to fully red for minimum voltage (7 V)
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_LED_BATT_MON, I2C_MAX_LEN)
         except KeyboardInterrupt:
@@ -697,7 +697,7 @@ state = GetCommsFailsafe()
 
 Read the current system state of the communications failsafe, True for enabled, False for disabled
 The failsafe will turn the motors off unless it is commanded at least once every 1/4 of a second
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_FAILSAFE, I2C_MAX_LEN)
         except KeyboardInterrupt:
@@ -730,7 +730,7 @@ Faults will self-clear, they do not need to be reset, however some faults requir
 The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
 Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
 For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_A_FAULT, I2C_MAX_LEN)
         except KeyboardInterrupt:
@@ -763,7 +763,7 @@ Faults will self-clear, they do not need to be reset, however some faults requir
 The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
 Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
 For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_B_FAULT, I2C_MAX_LEN)
         except KeyboardInterrupt:
@@ -784,7 +784,7 @@ voltage = GetBatteryReading()
 
 Reads the current battery level from the main input.
 Returns the value as a voltage based on the 3.3 V rail as a reference.
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_BATT_VOLT, I2C_MAX_LEN)
         except KeyboardInterrupt:
@@ -829,7 +829,7 @@ minimum, maximum = GetBatteryMonitoringLimits()
 Reads the current battery monitoring limits used for setting the LED colour.
 The values are between 0 and 36.3 V.
 The colours shown range from full red at minimum or below, yellow half way, and full green at maximum or higher.
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_BATT_LIMITS, I2C_MAX_LEN)
         except KeyboardInterrupt:

@@ -105,7 +105,7 @@ Scans the I²C bus for a UltraBorg boards and returns a list of all usable addres
 The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
     """
     found = []
-    print 'Scanning I²C bus #%d' % (busNumber)
+    print('Scanning I²C bus #%d' % (busNumber))
     bus = UltraBorg()
     for address in range(0x03, 0x78, 1):
         try:
@@ -113,7 +113,7 @@ The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for Re
             i2cRecv = bus.RawRead(COMMAND_GET_ID, I2C_MAX_LEN)
             if len(i2cRecv) == I2C_MAX_LEN:
                 if i2cRecv[1] == I2C_ID_SERVO_USM:
-                    print 'Found UltraBorg at %02X' % (address)
+                    print('Found UltraBorg at %02X' % (address))
                     found.append(address)
                 else:
                     pass
@@ -124,11 +124,11 @@ The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for Re
         except:
             pass
     if len(found) == 0:
-        print 'No UltraBorg boards found, is bus #%d correct (should be 0 for Rev 1, 1 for Rev 2)' % (busNumber)
+        print('No UltraBorg boards found, is bus #%d correct (should be 0 for Rev 1, 1 for Rev 2)' % (busNumber))
     elif len(found) == 1:
-        print '1 UltraBorg board found'
+        print('1 UltraBorg board found')
     else:
-        print '%d UltraBorg boards found' % (len(found))
+        print('%d UltraBorg boards found' % (len(found)))
     return found
 
 
@@ -142,19 +142,19 @@ The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for Re
 Warning, this new I²C address will still be used after resetting the power on the device
     """
     if newAddress < 0x03:
-        print 'Error, I²C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)'
+        print('Error, I²C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)')
         return
     elif newAddress > 0x77:
-        print 'Error, I²C addresses above 119 (0x77) are reserved, use an address between 3 (0x03) and 119 (0x77)'
+        print('Error, I²C addresses above 119 (0x77) are reserved, use an address between 3 (0x03) and 119 (0x77)')
         return
     if oldAddress < 0x0:
         found = ScanForUltraBorg(busNumber)
         if len(found) < 1:
-            print 'No UltraBorg boards found, cannot set a new I²C address!'
+            print('No UltraBorg boards found, cannot set a new I²C address!')
             return
         else:
             oldAddress = found[0]
-    print 'Changing I²C address from %02X to %02X (bus #%d)' % (oldAddress, newAddress, busNumber)
+    print('Changing I²C address from %02X to %02X (bus #%d)' % (oldAddress, newAddress, busNumber))
     bus = UltraBorg()
     bus.InitBusOnly(busNumber, oldAddress)
     try:
@@ -162,44 +162,44 @@ Warning, this new I²C address will still be used after resetting the power on th
         if len(i2cRecv) == I2C_MAX_LEN:
             if i2cRecv[1] == I2C_ID_SERVO_USM:
                 foundChip = True
-                print 'Found UltraBorg at %02X' % (oldAddress)
+                print('Found UltraBorg at %02X' % (oldAddress))
             else:
                 foundChip = False
-                print 'Found a device at %02X, but it is not a UltraBorg (ID %02X instead of %02X)' % (oldAddress, i2cRecv[1], I2C_ID_SERVO_USM)
+                print('Found a device at %02X, but it is not a UltraBorg (ID %02X instead of %02X)' % (oldAddress, i2cRecv[1], I2C_ID_SERVO_USM))
         else:
             foundChip = False
-            print 'Missing UltraBorg at %02X' % (oldAddress)
+            print('Missing UltraBorg at %02X' % (oldAddress))
     except KeyboardInterrupt:
         raise
     except:
         foundChip = False
-        print 'Missing UltraBorg at %02X' % (oldAddress)
+        print('Missing UltraBorg at %02X' % (oldAddress))
     if foundChip:
         bus.RawWrite(COMMAND_SET_I2C_ADD, [newAddress])
         time.sleep(0.1)
-        print 'Address changed to %02X, attempting to talk with the new address' % (newAddress)
+        print('Address changed to %02X, attempting to talk with the new address' % (newAddress))
         try:
             bus.InitBusOnly(busNumber, newAddress)
             i2cRecv = bus.RawRead(COMMAND_GET_ID, I2C_MAX_LEN)
             if len(i2cRecv) == I2C_MAX_LEN:
                 if i2cRecv[1] == I2C_ID_SERVO_USM:
                     foundChip = True
-                    print 'Found UltraBorg at %02X' % (newAddress)
+                    print('Found UltraBorg at %02X' % (newAddress))
                 else:
                     foundChip = False
-                    print 'Found a device at %02X, but it is not a UltraBorg (ID %02X instead of %02X)' % (newAddress, i2cRecv[1], I2C_ID_SERVO_USM)
+                    print('Found a device at %02X, but it is not a UltraBorg (ID %02X instead of %02X)' % (newAddress, i2cRecv[1], I2C_ID_SERVO_USM))
             else:
                 foundChip = False
-                print 'Missing UltraBorg at %02X' % (newAddress)
+                print('Missing UltraBorg at %02X' % (newAddress))
         except KeyboardInterrupt:
             raise
         except:
             foundChip = False
-            print 'Missing UltraBorg at %02X' % (newAddress)
+            print('Missing UltraBorg at %02X' % (newAddress))
     if foundChip:
-        print 'New I²C address of %02X set successfully' % (newAddress)
+        print('New I²C address of %02X set successfully' % (newAddress))
     else:
-        print 'Failed to set new I²C address...'
+        print('Failed to set new I²C address...')
 
 
 # Class used to control UltraBorg
@@ -298,7 +298,7 @@ Print(message)
 Wrapper used by the UltraBorg instance to print messages, will call printFunction if set, print otherwise
         """
         if self.printFunction == None:
-            print message
+            print(message)
         else:
             self.printFunction(message)
 
@@ -1662,7 +1662,7 @@ e.g.
             inRange = True
 
         if not inRange:
-            print 'Servo #1 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_1, self.PWM_MAX_1)
+            print('Servo #1 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_1, self.PWM_MAX_1))
             return
 
         try:
@@ -1712,7 +1712,7 @@ e.g.
             inRange = True
 
         if not inRange:
-            print 'Servo #2 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_2, self.PWM_MAX_2)
+            print('Servo #2 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_2, self.PWM_MAX_2))
             return
 
         try:
@@ -1762,7 +1762,7 @@ e.g.
             inRange = True
 
         if not inRange:
-            print 'Servo #3 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_3, self.PWM_MAX_3)
+            print('Servo #3 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_3, self.PWM_MAX_3))
             return
 
         try:
@@ -1812,7 +1812,7 @@ e.g.
             inRange = True
 
         if not inRange:
-            print 'Servo #4 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_4, self.PWM_MAX_4)
+            print('Servo #4 startup position %d is outside the limits of %d to %d' % (pwmLevel, self.PWM_MIN_4, self.PWM_MAX_4))
             return
 
         try:
@@ -1833,8 +1833,7 @@ Displays the names and descriptions of the various functions and settings provid
         funcList = [UltraBorg.__dict__.get(a) for a in dir(UltraBorg) if isinstance(UltraBorg.__dict__.get(a), types.FunctionType)]
         funcListSorted = sorted(funcList, key = lambda x: x.func_code.co_firstlineno)
 
-        print self.__doc__
+        print(self.__doc__)
         print
         for func in funcListSorted:
-            print '=== %s === %s' % (func.func_name, func.func_doc)
-
+            print('=== %s === %s' % (func.func_name, func.func_doc))

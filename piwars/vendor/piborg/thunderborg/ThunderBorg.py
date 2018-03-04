@@ -105,6 +105,7 @@ The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for R
         except KeyboardInterrupt:
             raise
         except:
+            raise
             pass
     if len(found) == 0:
         print('No ThunderBorg boards found, is bus #%d correct (should be 0 for Rev 1, 1 for Rev 2)' % (busNumber))
@@ -155,6 +156,7 @@ Warning, this new I²C address will still be used after resetting the power on t
     except KeyboardInterrupt:
         raise
     except:
+        raise
         foundChip = False
         print('Missing ThunderBorg at %02X' % (oldAddress))
     if foundChip:
@@ -177,6 +179,7 @@ Warning, this new I²C address will still be used after resetting the power on t
         except KeyboardInterrupt:
             raise
         except:
+            raise
             foundChip = False
             print('Missing ThunderBorg at %02X' % (newAddress))
     if foundChip:
@@ -320,6 +323,7 @@ If tryOtherBus is True, this function will attempt to use the other bus if the T
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.foundChip = False
             self.Print('Missing ThunderBorg at %02X' % (self.i2cAddress))
 
@@ -369,6 +373,7 @@ SetMotor2(1)     -> motor 2 moving forward at 100% power
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending motor 2 drive level!')
 
 
@@ -388,6 +393,7 @@ e.g.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading motor 2 drive level!')
             return
 
@@ -430,6 +436,7 @@ SetMotor1(1)     -> motor 1 moving forward at 100% power
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending motor 1 drive level!')
 
 
@@ -449,6 +456,7 @@ e.g.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading motor 1 drive level!')
             return
 
@@ -491,6 +499,7 @@ SetMotors(1)     -> all motors are moving forward at 100% power
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending all motors drive level!')
 
 
@@ -505,6 +514,7 @@ Sets all motors to stopped, useful when ending a program
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending motors off command!')
 
 
@@ -528,6 +538,7 @@ SetLed1(0.2, 0.0, 0.2) -> ThunderBorg LED dull purple
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending colour for the ThunderBorg LED!')
 
 
@@ -547,6 +558,7 @@ e.g.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading ThunderBorg LED colour!')
             return
 
@@ -576,6 +588,7 @@ SetLed2(0.2, 0.0, 0.2) -> ThunderBorg Lid LED dull purple
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending colour for the ThunderBorg Lid LED!')
 
 
@@ -595,6 +608,7 @@ e.g.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading ThunderBorg Lid LED colour!')
             return
 
@@ -624,6 +638,7 @@ SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending colour for both LEDs!')
 
 
@@ -645,6 +660,8 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
         except KeyboardInterrupt:
             raise
         except:
+            raise
+            
             self.Print('Failed sending LED battery monitoring state!')
 
 
@@ -661,6 +678,7 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading LED battery monitoring state!')
             return
 
@@ -689,6 +707,7 @@ The failsafe is disabled at power on
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending communications failsafe state!')
 
 
@@ -704,6 +723,7 @@ The failsafe will turn the motors off unless it is commanded at least once every
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading communications failsafe state!')
             return
 
@@ -737,6 +757,7 @@ For more details check the website at www.piborg.org/thunderborg and double chec
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading the drive fault state for motor #1!')
             return
 
@@ -770,6 +791,7 @@ For more details check the website at www.piborg.org/thunderborg and double chec
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading the drive fault state for motor #2!')
             return
 
@@ -791,6 +813,7 @@ Returns the value as a voltage based on the 3.3 V rail as a reference.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading battery level!')
             return
 
@@ -820,6 +843,7 @@ These values are stored in EEPROM and reloaded when the board is powered.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending battery monitoring limits!')
 
 
@@ -836,6 +860,7 @@ The colours shown range from full red at minimum or below, yellow half way, and 
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed reading battery monitoring limits!')
             return
 
@@ -870,6 +895,7 @@ to the LEDs.
         except KeyboardInterrupt:
             raise
         except:
+            raise
             self.Print('Failed sending word for the external LEDs!')
 
 

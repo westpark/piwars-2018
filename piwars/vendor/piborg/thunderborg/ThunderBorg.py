@@ -218,10 +218,8 @@ Command codes can be found at the top of ThunderBorg.py, data is a list of 0 or 
 
 Under most circumstances you should use the appropriate function instead of RawWrite
         """
-        rawOutput = chr(command)
-        for singleByte in data:
-            rawOutput += chr(singleByte)
-        self.i2cWrite.write(rawOutput)
+        output = bytes([command]) + bytes(data)
+        self.i2cWrite.write(output)
 
 
     def RawRead(self, command, length, retryCount = 3):
@@ -238,10 +236,7 @@ Under most circumstances you should use the appropriate function instead of RawR
         """
         while retryCount > 0:
             self.RawWrite(command, [])
-            rawReply = self.i2cRead.read(length)
-            reply = []
-            for singleByte in rawReply:
-                reply.append(ord(singleByte))
+            reply = self.i2cRead.read(length)
             if command == reply[0]:
                 break
             else:

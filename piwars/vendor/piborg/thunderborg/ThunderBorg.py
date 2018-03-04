@@ -25,6 +25,7 @@ TB = ThunderBorg.ThunderBorg()
 TB.Help()
 See the website at www.piborg.org/thunderborg for more details
 """
+from __future__ import print_function
 
 # Import the libraries we need
 import io
@@ -905,3 +906,16 @@ Displays the names and descriptions of the various functions and settings provid
         print
         for func in funcListSorted:
             print('=== %s === %s' % (func.func_name, func.func_doc))
+
+if __name__ == '__main__':
+    import time
+    tb = ThunderBorg()
+    tb.Init()
+    if not tb.foundChip:
+        raise RuntimeError("TB not found")
+    tb.SetMotors(0.3)
+    try:
+        time.sleep(1)
+    finally:
+        tb.MotorsOff()
+    

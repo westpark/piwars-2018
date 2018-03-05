@@ -1,4 +1,6 @@
 # coding: utf-8
+import logging
+
 from .vendor.piborg.thunderborg import ThunderBorg
 from .vendor.piborg.ultraborg import UltraBorg
 
@@ -7,9 +9,10 @@ class RobotError(Exception): pass
 class Robot(object):
 
     max_power_factor = 0.5
-    default_power_percent = 50.0
+    default_power_percent = 75.0
     
     def __init__(self, i2cAddress=0x15):
+        self.logger = logging.getLogger("Robot")
         self.tb = ThunderBorg.ThunderBorg()
         self.tb.i2cAddress = i2cAddress
         self.tb.Init()
@@ -39,36 +42,45 @@ class Robot(object):
         return self.ub.GetDistance1()
 
     def get_left_speed_percent(self):
-        return self.tb.GetMotor1() * 100.0 / self.max_power_factor
-
-    def get_right_speed_percent(self):
         return self.tb.GetMotor2() * 100.0 / self.max_power_factor
 
+    def get_right_speed_percent(self):
+        return self.tb.GetMotor1() * 100.0 / self.max_power_factor
+
     def forwards_left(self, power_percent=default_power_percent):
-        self.tb.SetMotor1(self.max_power_factor * power_percent / 100.0)
+        self.tb.SetMotor2(self.max_power_factor * -power_percent / 100.0)
 
     def forwards_right(self, power_percent=default_power_percent):
-        self.tb.SetMotor2(self.max_power_factor * power_percent / 100.0)
+        self.tb.SetMotor1(self.max_power_factor * -power_percent / 100.0)
 
     def forwards(self, power_percent=default_power_percent):
         print("About to run at", self.max_power_factor * power_percent / 100.0)
-        self.tb.SetMotors(self.max_power_factor * power_percent / 100.0)
+        self.tb.SetMotors(self.max_power_factor * -power_percent / 100.0)
 
     def backwards_left(self, power_percent=default_power_percent):
-        self.tb.SetMotor1(self.max_power_factor * -power_percent / 100.0)
+        self.tb.SetMotor2(self.max_power_factor * +power_percent / 100.0)
 
     def backwards_right(self, power_percent=default_power_percent):
-        self.tb.SetMotor2(self.max_power_factor * -power_percent / 100.0)
+        self.tb.SetMotor1(self.max_power_factor * +power_percent / 100.0)
 
     def backwards(self, power_percent=default_power_percent):
-        self.tb.SetMotors(self.max_power_factor * power_percent / 100.0)
+        print("About to run backwards at", self.max_power_factor * +power_percent / 100.0)
+        self.tb.SetMotors(self.max_power_factor * +power_percent / 100.0)
 
     def stop_left(self):
-        self.tb.SetMotor1(0)
+        self.tb.SetMotor2(0)
 
     def stop_right(self):
         self.tb.SetMotor1(0)
+    
+    def turn_right(self, power_percent=default_power_percent):
+        self.forwards_left(power_percent)
+        self.backwards_right(power_percent)
 
+    def turn_left(self, power_percent=default_power_percent):
+        self.backwards_left(power_percent)
+        self.forwards_right(power_percent)
+    
     def stop(self):
         self.tb.MotorsOff()
 
@@ -99,8 +111,12 @@ class Robot(object):
 if __name__ == '__main__':
     import time
     with Robot() as robbie:
-        robbie.forwards(60.0)
-        time.sleep(1)
-        robbie.backwards(60.0)
+        #~ robbie.forwards()
+        #~ time.sleep(1)
+        #~ robbie.backwards()
+        #~ time.sleep(1)
+        #~ robbie.stop()
+        
+        robbie.turn_left()
         time.sleep(1)
         robbie.stop()

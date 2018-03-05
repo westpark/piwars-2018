@@ -120,8 +120,6 @@ The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Re
                 pass
         except KeyboardInterrupt:
             raise
-        except:
-            pass
     if len(found) == 0:
         print('No UltraBorg boards found, is bus #%d correct (should be 0 for Rev 1, 1 for Rev 2)' % (busNumber))
     elif len(found) == 1:
@@ -438,14 +436,7 @@ e.g.
 1000  -> Object 1000 mm (1 m) away
 3500  -> Object 3500 mm (3.5 m) away
         """
-        try:
-            i2cRecv = self.RawRead(COMMAND_GET_FILTER_USM1, I2C_MAX_LEN)
-        except KeyboardInterrupt:
-            raise
-        except:
-            self.Print('Failed reading ultrasonic #1 distance!')
-            return
-
+        i2cRecv = self.RawRead(COMMAND_GET_FILTER_USM1, I2C_MAX_LEN)
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
             time_us = 0
@@ -469,9 +460,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_FILTER_USM2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #2 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -496,9 +484,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_FILTER_USM3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #3 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -523,9 +508,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_FILTER_USM4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #4 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -551,9 +533,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_TIME_USM1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #1 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -578,9 +557,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_TIME_USM2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #2 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -605,9 +581,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_TIME_USM3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #3 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -632,9 +605,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_TIME_USM4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ultrasonic #4 distance!')
-            return
 
         time_us = (i2cRecv[1] << 8) + i2cRecv[2]
         if time_us == 65535:
@@ -658,9 +628,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo output #1!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         powerOut = (float(pwmDuty) - self.PWM_MIN_1) / (self.PWM_MAX_1 - self.PWM_MIN_1)
@@ -683,9 +650,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo output #2!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         powerOut = (float(pwmDuty) - self.PWM_MIN_2) / (self.PWM_MAX_2 - self.PWM_MIN_2)
@@ -708,9 +672,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo output #3!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         powerOut = (float(pwmDuty) - self.PWM_MIN_3) / (self.PWM_MAX_3 - self.PWM_MIN_3)
@@ -733,9 +694,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo output #4!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         powerOut = (float(pwmDuty) - self.PWM_MIN_4) / (self.PWM_MAX_4 - self.PWM_MIN_4)
@@ -763,9 +721,6 @@ e.g.
             self.RawWrite(COMMAND_SET_PWM1, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending servo output #1!')
-
 
     def SetServoPosition2(self, position):
         """
@@ -788,9 +743,6 @@ e.g.
             self.RawWrite(COMMAND_SET_PWM2, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending servo output #2!')
-
 
     def SetServoPosition3(self, position):
         """
@@ -813,9 +765,6 @@ e.g.
             self.RawWrite(COMMAND_SET_PWM3, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending servo output #3!')
-
 
     def SetServoPosition4(self, position):
         """
@@ -838,9 +787,6 @@ e.g.
             self.RawWrite(COMMAND_SET_PWM4, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending servo output #1!')
-
 
     def GetServoMinimum1(self):
         """
@@ -859,9 +805,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #1 minimum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -883,9 +826,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #2 minimum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -907,9 +847,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #3 minimum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -931,9 +868,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #4 minimum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -955,9 +889,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #1 maximum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -979,9 +910,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #2 maximum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1003,9 +931,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #3 maximum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1027,9 +952,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #4 maximum burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1051,9 +973,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #1 startup burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1075,9 +994,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #2 startup burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1099,9 +1015,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #3 startup burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1123,9 +1036,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading servo #4 startup burst!')
-            return
 
         return (i2cRecv[1] << 8) + i2cRecv[2]
 
@@ -1155,9 +1065,6 @@ e.g.
             self.RawWrite(COMMAND_CALIBRATE_PWM1, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending calibration servo output #1!')
-
 
     def CalibrateServoPosition2(self, pwmLevel):
         """
@@ -1184,9 +1091,6 @@ e.g.
             self.RawWrite(COMMAND_CALIBRATE_PWM2, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending calibration servo output #2!')
-
 
     def CalibrateServoPosition3(self, pwmLevel):
         """
@@ -1213,9 +1117,6 @@ e.g.
             self.RawWrite(COMMAND_CALIBRATE_PWM3, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending calibration servo output #3!')
-
 
     def CalibrateServoPosition4(self, pwmLevel):
         """
@@ -1242,9 +1143,6 @@ e.g.
             self.RawWrite(COMMAND_CALIBRATE_PWM4, [pwmDutyHigh, pwmDutyLow])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending calibration servo output #4!')
-
 
     def GetRawServoPosition1(self):
         """
@@ -1267,9 +1165,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading raw servo output #1!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         return pwmDuty
@@ -1296,9 +1191,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading raw servo output #2!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         return pwmDuty
@@ -1325,9 +1217,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM3, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading raw servo output #3!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         return pwmDuty
@@ -1354,9 +1243,6 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_PWM4, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading raw servo output #4!')
-            return
 
         pwmDuty = (i2cRecv[1] << 8) + i2cRecv[2]
         return pwmDuty

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 """
 This module is designed to communicate with the UltraBorg
@@ -854,7 +853,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_1, I2C_MAX_LEN)
@@ -878,7 +877,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_2, I2C_MAX_LEN)
@@ -902,7 +901,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_3, I2C_MAX_LEN)
@@ -926,7 +925,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MIN_4, I2C_MAX_LEN)
@@ -950,7 +949,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_1, I2C_MAX_LEN)
@@ -974,7 +973,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_2, I2C_MAX_LEN)
@@ -998,7 +997,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_3, I2C_MAX_LEN)
@@ -1022,7 +1021,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_MAX_4, I2C_MAX_LEN)
@@ -1046,7 +1045,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_1, I2C_MAX_LEN)
@@ -1070,7 +1069,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_2, I2C_MAX_LEN)
@@ -1094,7 +1093,7 @@ e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
 3000  -> 1.5 ms servo burst, typical centre
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_3, I2C_MAX_LEN)
@@ -1117,8 +1116,8 @@ The value is an integer where 2000 represents a 1 ms servo burst
 e.g.
 2000  -> 1 ms servo burst, typical shortest burst
 4000  -> 2 ms servo burst, typical longest burst
-3000  -> 1.5 ms servo burst, typical centre, 
-5000  -> 2.5 ms servo burst, higher than typical longest burst 
+3000  -> 1.5 ms servo burst, typical centre,
+5000  -> 2.5 ms servo burst, higher than typical longest burst
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_PWM_BOOT_4, I2C_MAX_LEN)

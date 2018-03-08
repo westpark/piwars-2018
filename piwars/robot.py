@@ -10,6 +10,8 @@ class Robot(object):
 
     max_power_factor = 0.5
     default_power_percent = 75.0
+    front = -1
+    back = +1
     
     def __init__(self, i2cAddress=0x15):
         self.logger = logging.getLogger("Robot")
@@ -48,24 +50,28 @@ class Robot(object):
         return self.tb.GetMotor1() * 100.0 / self.max_power_factor
 
     def forwards_left(self, power_percent=default_power_percent):
-        self.tb.SetMotor2(self.max_power_factor * -power_percent / 100.0)
+        self.tb.SetMotor2(self.front * self.max_power_factor * power_percent / 100.0)
 
     def forwards_right(self, power_percent=default_power_percent):
-        self.tb.SetMotor1(self.max_power_factor * -power_percent / 100.0)
+        self.tb.SetMotor1(self.front * self.max_power_factor * power_percent / 100.0)
 
     def forwards(self, power_percent=default_power_percent):
-        print("About to run at", self.max_power_factor * power_percent / 100.0)
-        self.tb.SetMotors(self.max_power_factor * -power_percent / 100.0)
+        self.tb.SetMotors(self.front * self.max_power_factor * power_percent / 100.0)
 
     def backwards_left(self, power_percent=default_power_percent):
-        self.tb.SetMotor2(self.max_power_factor * +power_percent / 100.0)
+        self.tb.SetMotor2(self.back * self.max_power_factor * power_percent / 100.0)
 
     def backwards_right(self, power_percent=default_power_percent):
-        self.tb.SetMotor1(self.max_power_factor * +power_percent / 100.0)
+        self.tb.SetMotor1(self.back * self.max_power_factor * power_percent / 100.0)
 
     def backwards(self, power_percent=default_power_percent):
-        print("About to run backwards at", self.max_power_factor * +power_percent / 100.0)
-        self.tb.SetMotors(self.max_power_factor * +power_percent / 100.0)
+        self.tb.SetMotors(self.back * self.max_power_factor * power_percent / 100.0)
+    
+    def go(self, left_power_percent=default_power_percent, right_power_percent=default_power_percent):
+        if (abs(left_power_percent) > 0.01 or abs(right_power_percent) > 0.01):
+            print("left: %3.2f; right: %3.2f" % (left_power_percent, right_power_percent))
+        self.tb.SetMotor1(self.front * self.max_power_factor * right_power_percent / 100.0)
+        self.tb.SetMotor2(self.front * self.max_power_factor * left_power_percent / 100.0)
 
     def stop_left(self):
         self.tb.SetMotor2(0)

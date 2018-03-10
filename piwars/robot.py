@@ -15,6 +15,9 @@ class Robot(object):
     
     def __init__(self, i2cAddress=0x15):
         self.logger = logging.getLogger("Robot")
+        self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(logging.StreamHandler())
+        
         self.tb = ThunderBorg.ThunderBorg()
         self.tb.i2cAddress = i2cAddress
         self.tb.Init()
@@ -32,8 +35,24 @@ class Robot(object):
         return self
 
     def __exit__(self, *args):
+        self.logger.info("Shutting down")
         self.tb.MotorsOff()
 
+    def _motor1(self, power):
+        self.logger.info("Motor 1 -> %1.2f", power)
+        self.tb.SetMotor1(power)
+    
+    def _motor2(self, power):
+        self.logger.info("Motor 2 -> %1.2f", power)
+        self.tb.SetMotor2(power)
+    
+    def _motors(self, power):
+        self.logger.info("Motors -> %1.2f", power)
+        if power == 0:
+            self.tb.MotorsOff()
+        else:
+            self.tb.SetMotors(power)
+    
     def get_right_mm(self):
         return self.ub.GetDistance3()
 
@@ -50,34 +69,32 @@ class Robot(object):
         return self.tb.GetMotor1() * 100.0 / self.max_power_factor
 
     def forwards_left(self, power_percent=default_power_percent):
-        self.tb.SetMotor2(self.front * self.max_power_factor * power_percent / 100.0)
+        self._motor2(self.front * self.max_power_factor * power_percent / 100.0)
 
     def forwards_right(self, power_percent=default_power_percent):
-        self.tb.SetMotor1(self.front * self.max_power_factor * power_percent / 100.0)
+        self._motor1(self.front * self.max_power_factor * power_percent / 100.0)
 
     def forwards(self, power_percent=default_power_percent):
-        self.tb.SetMotors(self.front * self.max_power_factor * power_percent / 100.0)
+        self._motors(self.front * self.max_power_factor * power_percent / 100.0)
 
     def backwards_left(self, power_percent=default_power_percent):
-        self.tb.SetMotor2(self.back * self.max_power_factor * power_percent / 100.0)
+        self._motor2(self.back * self.max_power_factor * power_percent / 100.0)
 
     def backwards_right(self, power_percent=default_power_percent):
-        self.tb.SetMotor1(self.back * self.max_power_factor * power_percent / 100.0)
+        self._motor1(self.back * self.max_power_factor * power_percent / 100.0)
 
     def backwards(self, power_percent=default_power_percent):
-        self.tb.SetMotors(self.back * self.max_power_factor * power_percent / 100.0)
+        self._motors(self.back * self.max_power_factor * power_percent / 100.0)
     
     def go(self, left_power_percent=default_power_percent, right_power_percent=default_power_percent):
-        if (abs(left_power_percent) > 0.01 or abs(right_power_percent) > 0.01):
-            print("left: %3.2f; right: %3.2f" % (left_power_percent, right_power_percent))
-        self.tb.SetMotor1(self.front * self.max_power_factor * right_power_percent / 100.0)
-        self.tb.SetMotor2(self.front * self.max_power_factor * left_power_percent / 100.0)
+        self._motor1(self.front * self.max_power_factor * right_power_percent / 100.0)
+        self._motor2(self.front * self.max_power_factor * left_power_percent / 100.0)
 
     def stop_left(self):
-        self.tb.SetMotor2(0)
+        self._motor2(0)
 
     def stop_right(self):
-        self.tb.SetMotor1(0)
+        self._motor1(0)
     
     def turn_right(self, power_percent=default_power_percent):
         self.forwards_left(power_percent)
@@ -88,7 +105,7 @@ class Robot(object):
         self.forwards_right(power_percent)
     
     def stop(self):
-        self.tb.MotorsOff()
+        self._motors(0)
 
     def set_led(self, n, rgb):
         r = int(rgb[0:2], 16) / 255.0
@@ -110,19 +127,19 @@ class Robot(object):
             raise RobotError("Invalid LED number: %s" % n)
         return "".join("%02x" % (i * 255.0) for i in (r, g, b))
 
-    def battery_level(self):
+    def _get_battery_level(self):
         return self.tb.GetBatteryReading()
+    battery_level = property(_get_battery_level)
 
 
 if __name__ == '__main__':
     import time
     with Robot() as robbie:
-        #~ robbie.forwards()
-        #~ time.sleep(1)
-        #~ robbie.backwards()
-        #~ time.sleep(1)
-        #~ robbie.stop()
-        
-        robbie.turn_left()
+        logger = logging.getLogger("Robot")
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(logging.StreamHandler())
+        robbie.forwards()
+        time.sleep(1)
+        robbie.backwards()
         time.sleep(1)
         robbie.stop()

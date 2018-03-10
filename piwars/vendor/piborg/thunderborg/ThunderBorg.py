@@ -30,8 +30,12 @@ from __future__ import print_function
 # Import the libraries we need
 import io
 import fcntl
+import logging
 import types
 import time
+
+logger = logging.getLogger("piborg.thunderborg")
+print = logger.debug
 
 # Constant values
 I2C_SLAVE                   = 0x0703

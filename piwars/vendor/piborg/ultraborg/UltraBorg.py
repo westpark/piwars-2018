@@ -28,8 +28,13 @@ See the website at www.piborg.org/ultraborg for more details
 # Import the libraries we need
 import io
 import fcntl
+import logging
 import types
 import time
+
+logger = logging.getLogger("piborg.ultraborg")
+print = logger.debug
+
 
 # Constant values
 I2C_SLAVE                   = 0x0703

@@ -8,8 +8,8 @@ class RobotError(Exception): pass
 
 class Robot(object):
 
-    max_power_factor = 0.5
-    default_power_percent = 75.0
+    max_power_factor = 0.6
+    default_power = 0.5
     front = -1
     back = +1
     
@@ -62,52 +62,41 @@ class Robot(object):
     def get_front_mm(self):
         return self.ub.GetDistance1()
 
-    def get_left_speed_percent(self):
-        return self.tb.GetMotor2() * 100.0 / self.max_power_factor
+    def get_left_speed(self):
+        return self.tb.GetMotor2() / self.max_power_factor
 
-    def get_right_speed_percent(self):
-        return self.tb.GetMotor1() * 100.0 / self.max_power_factor
+    def get_right_speed(self):
+        return self.tb.GetMotor1() / self.max_power_factor
 
-    def forwards_left(self, power_percent=default_power_percent):
-        self._motor2(self.front * self.max_power_factor * power_percent / 100.0)
+    def forwards(self, lpower=default_power, rpower=default_power):
+        if lpower == rpower:
+            self._motors(self.front * self.max_power_factor * lpower)
+        else:
+            self._motor1(self.front * self.max_power_factor * rpower)
+            self._motor2(self.front * self.max_power_factor * lpower)
 
-    def forwards_right(self, power_percent=default_power_percent):
-        self._motor1(self.front * self.max_power_factor * power_percent / 100.0)
-
-    def forwards(self, power_percent=default_power_percent):
-        self._motors(self.front * self.max_power_factor * power_percent / 100.0)
-
-    def backwards_left(self, power_percent=default_power_percent):
-        self._motor2(self.back * self.max_power_factor * power_percent / 100.0)
-
-    def backwards_right(self, power_percent=default_power_percent):
-        self._motor1(self.back * self.max_power_factor * power_percent / 100.0)
-
-    def backwards(self, power_percent=default_power_percent):
-        self._motors(self.back * self.max_power_factor * power_percent / 100.0)
+    def backwards(self, lpower=default_power, rpower=default_power):
+        if lpower == rpower:
+            self._motors(self.back * self.max_power_factor * lpower)
+        else:
+            self._motor1(self.back * self.max_power_factor * rpower)
+            self._motor2(self.back * self.max_power_factor * lpower)
     
-    def go(self, left_power_percent=default_power_percent, right_power_percent=default_power_percent):
-        self._motor1(self.front * self.max_power_factor * right_power_percent / 100.0)
-        self._motor2(self.front * self.max_power_factor * left_power_percent / 100.0)
+    def go(self, left_power=default_power, right_power=default_power):
+        self._motor1(self.front * self.max_power_factor * right_power)
+        self._motor2(self.front * self.max_power_factor * left_power)
 
-    def stop_left(self):
-        self._motor2(0)
+    def turn_right(self, power=default_power):
+        self.go(power, -power)
 
-    def stop_right(self):
-        self._motor1(0)
-    
-    def turn_right(self, power_percent=default_power_percent):
-        self.forwards_left(power_percent)
-        self.backwards_right(power_percent)
-
-    def turn_left(self, power_percent=default_power_percent):
-        self.backwards_left(power_percent)
-        self.forwards_right(power_percent)
+    def turn_left(self, power=default_power):
+        self.go(-power, +power)
     
     def stop(self):
         self._motors(0)
 
     def set_led(self, n, rgb):
+        rgb = rbg.lstrip("#")
         r = int(rgb[0:2], 16) / 255.0
         g = int(rgb[2:4], 16) / 255.0
         b = int(rgb[4:6], 16) / 255.0
@@ -125,7 +114,7 @@ class Robot(object):
             r, g, b = self.tb.GetLed2()
         else:
             raise RobotError("Invalid LED number: %s" % n)
-        return "".join("%02x" % (i * 255.0) for i in (r, g, b))
+        return "#" + "".join("%02x" % (i * 255.0) for i in (r, g, b))
 
     def _get_battery_level(self):
         return self.tb.GetBatteryReading()
@@ -142,4 +131,8 @@ if __name__ == '__main__':
         time.sleep(1)
         robbie.backwards()
         time.sleep(1)
+        robbie.turn_left()
+        time.sleep(1)
+        robbie.turn_right()
+        time.sleep(1)        
         robbie.stop()

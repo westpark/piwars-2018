@@ -6,11 +6,6 @@ pygame.init()
 
 from . import robot
 
-# Power settings
-voltageIn = 12.0                        # Total battery voltage to the ThunderBorg
-voltageOut = 6.0                       # Maximum motor voltage
-maxPower = max(voltageOut / voltageIn, 1.0)
-
 #
 # On PS3 controller:
 #
@@ -57,7 +52,7 @@ def handle_axis_move(event, speeds):
     left, right = speeds
     if event.axis == axisUpDown:
         left = right = -event.value
-    
+
     elif event.axis == axisLeftRight:
         movement = event.value
         if abs(movement) > 0.1:
@@ -67,7 +62,7 @@ def handle_axis_move(event, speeds):
                 right = -left * abs(movement)
             else:
                 left = right = max(left, right)
-    
+
     return left, right
 
 def handle_button_down(event, speeds):
@@ -79,7 +74,7 @@ def remote_control(robbie):
     hadEvent = False
     upDown = 0.0
     leftRight = 0.0
-    
+
     old_speeds = speeds = 0, 0
     while True:
         for event in pygame.event.get():
@@ -89,14 +84,14 @@ def remote_control(robbie):
                 speeds = handle_axis_move(event, speeds)
             elif event.type == pygame.JOYBUTTONDOWN and event.button in (buttonSlow, buttonFastTurn):
                 speeds = handle_button_down(event, speeds)
-            
+
             if speeds != old_speeds:
                 left, right = speeds
                 robbie.go(left, right)
                 old_speeds = speeds
-                
+
         time.sleep(interval)
-            
+
 if __name__ == '__main__':
     with robot.Robot() as robbie:
         remote_control(robbie)

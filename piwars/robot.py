@@ -1,10 +1,13 @@
 # coding: utf-8
 import logging
+import time
 
 from .vendor.piborg.thunderborg import ThunderBorg
 from .vendor.piborg.ultraborg import UltraBorg
 
 class RobotError(Exception): pass
+
+
 
 class Robot(object):
 
@@ -12,12 +15,15 @@ class Robot(object):
     default_power = 0.5
     front = -1
     back = +1
-    
+
+    degree15_secs = 0.53
+    cm10_secs = 0.671
+
     def __init__(self, i2cAddress=0x15):
         self.logger = logging.getLogger("Robot")
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(logging.StreamHandler())
-        
+
         self.tb = ThunderBorg.ThunderBorg()
         self.tb.i2cAddress = i2cAddress
         self.tb.Init()
@@ -41,18 +47,18 @@ class Robot(object):
     def _motor1(self, power):
         self.logger.info("Motor 1 -> %1.2f", power)
         self.tb.SetMotor1(power)
-    
+
     def _motor2(self, power):
         self.logger.info("Motor 2 -> %1.2f", power)
         self.tb.SetMotor2(power)
-    
+
     def _motors(self, power):
         self.logger.info("Motors -> %1.2f", power)
         if power == 0:
             self.tb.MotorsOff()
         else:
             self.tb.SetMotors(power)
-    
+
     def get_right_mm(self):
         return self.ub.GetDistance3()
 
@@ -81,7 +87,7 @@ class Robot(object):
         else:
             self._motor1(self.back * self.max_power_factor * rpower)
             self._motor2(self.back * self.max_power_factor * lpower)
-    
+
     def go(self, left_power=default_power, right_power=default_power):
         self._motor1(self.front * self.max_power_factor * right_power)
         self._motor2(self.front * self.max_power_factor * left_power)
@@ -91,9 +97,21 @@ class Robot(object):
 
     def turn_left(self, power=default_power):
         self.go(-power, +power)
-    
+
     def stop(self):
         self._motors(0)
+
+    def turn_through(self, n_degrees):
+        self.turn_right()
+        n_secs = (n_degrees / 15) * self.degree15_secs
+        time.sleep(n_secs)
+        self.stop()
+
+    def forwards_for(self, n_cms):
+        self.forwards()
+        n_secs = (n_cms / 10) * self.cm10_secs
+        time.sleep(n_secs)
+        self.stop()
 
     def set_led(self, n, rgb):
         rgb = rbg.lstrip("#")
@@ -132,7 +150,9 @@ if __name__ == '__main__':
         robbie.backwards()
         time.sleep(1)
         robbie.turn_left()
+        time.sleep(2)
+        robbie.forwards()
         time.sleep(1)
         robbie.turn_right()
-        time.sleep(1)        
+        time.sleep(2)
         robbie.stop()

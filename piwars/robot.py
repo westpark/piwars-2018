@@ -11,7 +11,7 @@ class RobotError(Exception): pass
 
 class Robot(object):
 
-    max_power_factor = 0.6
+    max_power_factor = 1
     default_power = 0.5
     front = -1
     back = +1
@@ -92,8 +92,11 @@ class Robot(object):
         self._motor1(self.front * self.max_power_factor * right_power)
         self._motor2(self.front * self.max_power_factor * left_power)
 
-    def turn_right(self, power=default_power):
+    def turn_right(self, power=default_power, n_secs=None):
         self.go(power, -power)
+        if n_secs is not None:
+            time.sleep(n_secs)
+            self.stop()
 
     def turn_left(self, power=default_power):
         self.go(-power, +power)
@@ -105,7 +108,7 @@ class Robot(object):
         self.turn_right()
         n_secs = (n_degrees / 15) * self.degree15_secs
         time.sleep(n_secs)
-        self.stop()
+        #~ self.stop()
 
     def forwards_for(self, n_cms):
         self.forwards()

@@ -121,8 +121,11 @@ class Robot(object):
     def get_left_mm(self):
         return self.ub.GetDistance4()
 
-    def get_front_mm(self):
-        return self.ub.GetDistance1()
+    def get_front_mm(self, use_raw=False):
+        if use_raw:
+            return self.ub.GetRawDistance1()
+        else:
+            return self.ub.GetDistance1()
 
     def get_left_speed(self):
         return self.tb.GetMotor2() / self.max_power_factor

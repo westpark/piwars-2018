@@ -1,11 +1,14 @@
 import os, sys
 import logging
 import threading
+import time
 
 #
 # Create a logger without any handlers.
 #
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
 
 import pygame
 os.environ["SDL_VIDEODRIVER"] = "dummy" # Removes the need to have a GUI window
@@ -84,7 +87,7 @@ class Joystick(object):
         while pygame.joystick.get_count() < 1:
             time.sleep(0.1)
         self._joystick = pygame.joystick.Joystick(0)
-        logger.debug("Found", joystick.get_name())
+        logger.debug("Found", self._joystick.get_name())
         self._joystick.init()
 
         self._event_handlers = {}
@@ -93,9 +96,9 @@ class Joystick(object):
     def set_event(self, event_name, function):
         if event_name not in self._events:
             raise RuntimeError("No such event: %s" % event_name)
-        pygame_event, key = _events[event_name]
+        pygame_event, key = self._events[event_name]
         with self._event_lock:
-            self._event_handlers.set_default(pygame_event, {})[key] = function
+            self._event_handlers.setdefault(pygame_event, {})[key] = function
 
     def find_handler(self, pygame_event, key):
         with self._event_lock:
@@ -103,17 +106,28 @@ class Joystick(object):
 
     def handle_axis(self, event):
         handler = self.find_handler(pygame.JOYAXISMOTION, event.axis)
-        if not handler:
-            raise RuntimeError("No handler for %s" % event)
-        handler(event.value)
+        if handler:
+            logger.info("Running handler %s for %s", handler, event)
+            handler(event.value)
 
     def handle_button(self, event):
-        handler = self.find_handler(pygame.JOYAXISMOTION, event.button)
-        handler()
+        handler = self.find_handler(pygame.JOYBUTTONDOWN, event.button)
+        if handler:
+            logger.info("Running handler %s for %s", handler, event)
+            handler()
 
     def run(self):
-        for event in pygame.event.get():
-            if event.type == pygame.JOYAXISMOTION:
-                self.handle_axis(event)
-            elif event_type == pygame.JOYBUTTONDOWN:
-                self.handle_button(event)
+        while True:
+            for event in pygame.event.get():
+                logger.info(event)
+                if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.05:
+                    self.handle_axis(event)
+                elif event.type == pygame.JOYBUTTONDOWN:
+                    self.handle_button(event)
+
+def left_stick_h(movement):
+    print("Movement on left stick:", movement)
+
+j = Joystick()
+j.set_event("left_stick_h", left_stick_h)
+j.run()

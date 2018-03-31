@@ -38,7 +38,7 @@ buttonFastTurn = 9                      # Joystick button number for turning fas
 buttonStop = 13
 interval = 0.00                         # Time between updates in seconds, smaller responds faster but uses more processor time
 
-def initialise_joystick(robbie):
+def initialise_joystick():
     print("Waiting for joystick...")
     pygame.joystick.init()
     while pygame.joystick.get_count() < 1:
@@ -69,7 +69,7 @@ def handle_button_down(event, speeds):
     return speeds
 
 def remote_control(robbie):
-    joystick = initialise_joystick(robbie)
+    joystick = initialise_joystick()
     running = True
     hadEvent = False
     upDown = 0.0

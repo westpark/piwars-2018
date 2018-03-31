@@ -18,13 +18,15 @@ class Servo(object):
     def _ub_function(self, base):
         return getattr(self.ultraborg, "%s%d" % (base, self.n_servo))
 
-    def _get_position(self):
+    def _get_raw_position(self):
         function = self._ub_function("GetRawServoPosition")
         return function()
+    raw_position = property(_get_raw_position)
+
     def _set_position(self, position):
         function = self._ub_function("SetServoPosition")
         return function(position)
-    position = property(_get_position, _set_position)
+    position = property(None, _set_position)
 
     def _get_min(self):
         function = self._ub_function("GetServoMinimum")

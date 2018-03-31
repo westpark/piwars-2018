@@ -16,8 +16,8 @@ class Remote(object):
 
         self.speeds = 0, 0
         self.running = True
-        self.controller.handle_left_stick_h = self.handle_axis_left_right
-        self.controller.handle_right_stick_v = self.handle_axis_up_down
+        self.controller.handle_left_stick_v = self.handle_axis_up_down
+        self.controller.handle_right_stick_h = self.handle_axis_left_right
         self.controller.handle_right_quadrant_e = self.stop
 
     def handle_axis_up_down(self, event):

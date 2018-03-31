@@ -45,40 +45,25 @@ slowFactor = 0.5                        # Speed to slow to when the drive slowly
 buttonFastTurn = 9                      # Joystick button number for turning fast (R2)
 buttonStop = 13
 
-class EventMap(object):
-
-    _events = {
-        "left_stick_h" : (pygame.JOYAXISMOTION, 2),
-        "left_stick_v" : (pygame.JOYAXISMOTION, 1),
-        "right_stick_h" : (pygame.JOYAXISMOTION, 2),
-        "right_stick_v" : (pygame.JOYAXISMOTION, 3),
-    }
-
-    def __init__(self):
-        self._event_map = {}
-        self._lock = threading.Lock()
-
-    def __setattr__(self, attr, value):
-        if attr in self._events:
-            with self._lock:
-                self._event_map[attr] = value
-        else:
-            raise AttributeError
-
-    def __getattr__(self, attr):
-        if attr in self._events:
-            with self._lock:
-                return self._event_map.get(attr)
-        else:
-            raise AttributeError
-
 class Joystick(object):
 
-    _events = {
-        "left_stick_h" : (pygame.JOYAXISMOTION, 2),
-        "left_stick_v" : (pygame.JOYAXISMOTION, 1),
-        "right_stick_h" : (pygame.JOYAXISMOTION, 2),
-        "right_stick_v" : (pygame.JOYAXISMOTION, 3),
+    stick_handlers = {
+        0 : "left_stick_h",
+        1 : "left_stick_v",
+
+        2 : "right_stick_h",
+        3 : "right_stick_v",
+    }
+    button_handlers = {
+        4 : "left_buttons_n",
+        5 : "left_buttons_e",
+        6 : "left_buttons_s",
+        7 : "left_buttons_w",
+
+        12 : "right_buttons_n",
+        13 : "right_buttons_e",
+        14 : "right_buttons_s",
+        15 : "right_buttons_w",
     }
 
     def __init__(self):
@@ -89,45 +74,55 @@ class Joystick(object):
         self._joystick = pygame.joystick.Joystick(0)
         logger.debug("Found", self._joystick.get_name())
         self._joystick.init()
+        self._stopped = False
 
-        self._event_handlers = {}
-        self._event_lock = threading.Lock()
+    def handle_left_stick_h(self, event):
+        pass
 
-    def set_event(self, event_name, function):
-        if event_name not in self._events:
-            raise RuntimeError("No such event: %s" % event_name)
-        pygame_event, key = self._events[event_name]
-        with self._event_lock:
-            self._event_handlers.setdefault(pygame_event, {})[key] = function
+    def handle_left_stick_v(self, event):
+        pass
 
-    def find_handler(self, pygame_event, key):
-        with self._event_lock:
-            return self._event_handlers.get(pygame_event, {}).get(key)
+    def handle_right_stick_h(self, event):
+        pass
 
-    def handle_axis(self, event):
-        handler = self.find_handler(pygame.JOYAXISMOTION, event.axis)
-        if handler:
-            logger.info("Running handler %s for %s", handler, event)
-            handler(event.value)
+    def handle_right_stick_v(self, event):
+        pass
 
-    def handle_button(self, event):
-        handler = self.find_handler(pygame.JOYBUTTONDOWN, event.button)
-        if handler:
-            logger.info("Running handler %s for %s", handler, event)
-            handler()
+    def handle_left_buttons_n(self, event):
+        pass
+
+    def handle_left_buttons_e(self, event):
+        pass
+
+    def handle_left_buttons_s(self, event):
+        pass
+
+    def handle_left_buttons_w(self, event):
+        pass
+
+    def handle_right_buttons_n(self, event):
+        pass
+
+    def handle_right_buttons_e(self, event):
+        pass
+
+    def handle_right_buttons_s(self, event):
+        pass
+
+    def handle_right_buttons_w(self, event):
+        pass
 
     def run(self):
-        while True:
+        while not self._stopped:
             for event in pygame.event.get():
                 logger.info(event)
                 if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.05:
-                    self.handle_axis(event)
+                    handler = self.stick_handlers.get(event.axis)
                 elif event.type == pygame.JOYBUTTONDOWN:
-                    self.handle_button(event)
-
-def left_stick_h(movement):
-    print("Movement on left stick:", movement)
+                    handler = self.button_handlers.get(event.button)
+                if handler:
+                    function = getattr(self, "handle_%s" % handler)
+                    function(event)
 
 j = Joystick()
-j.set_event("left_stick_h", left_stick_h)
 j.run()

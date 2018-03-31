@@ -7,6 +7,54 @@ from .vendor.piborg.ultraborg import UltraBorg
 
 class RobotError(Exception): pass
 
+class Servo(object):
+
+    def __init__(self, ultraborg, n_servo):
+        self.ultraborg = ultraborg
+        if not 1 <= n_servo <= 4:
+            raise ValueError("Servo must be 1 - 4")
+        self.n_servo = n_servo
+
+    def _ub_function(self, base):
+        return getattr(self.ultraborg, "%s%d" % (base, self.n_servo))
+
+    def _get_position(self):
+        function = self._ub_function("GetRawServoPosition")
+        return function()
+    def _set_position(self, position):
+        function = self._ub_function("SetServoPosition")
+        return function(position)
+    position = property(_get_position, _set_position)
+
+    def _get_min(self):
+        function = self._ub_function("GetServoMinimum")
+        return function()
+    def _set_min(self, pwm_level):
+        function = self._ub_function("SetServoMinimum")
+        return function(pwm_level)
+    min = property(_get_min, _set_min)
+
+    def _get_max(self):
+        function = self._ub_function("GetServoMaximum")
+        return function()
+    def _set_max(self, pwm_level):
+        function = self._ub_function("SetServoMaximum")
+        return function(pwm_level)
+    max = property(_get_max, _set_max)
+
+    def _get_startup(self):
+        function = self._ub_function("GetServoStartup")
+        return function()
+    def _set_startup(self, pwm_level):
+        function = self._ub_function("SetServoStartup")
+        return function(pwm_level)
+    startup = property(_get_startup, _set_startup)
+
+    def calibrate(self, pwm_level):
+        function = self._ub_function("CalibrateServoPosition")
+        return function(pwm_level)
+
+
 
 class Robot(object):
 
@@ -35,6 +83,8 @@ class Robot(object):
 
         self.ub = UltraBorg.UltraBorg()
         self.ub.Init()
+
+        self.servos = [Servo(n) for n in range(1, 5)]
 
     def __enter__(self):
         return self
@@ -140,6 +190,89 @@ class Robot(object):
         return self.tb.GetBatteryReading()
     battery_level = property(_get_battery_level)
 
+    def _check_servo(self, n_servo):
+        if not 1 <= n_servo <= 4:
+            raise ValueError("Servo must be 1-4")
+
+    def move_servo_to(self, n_servo, position):
+        """Set the servo position
+
+        0 is central, -1 is maximum left, +1 is maximum right
+        """
+        self._check_servo(n_servo)
+        function = getattr(self.ub, "SetServoPosition%d" % n_servo)
+        return function(position)
+
+    def get_servo_min(self, n_servo):
+        """pwmLevel = get_servo_min(n_servo)
+
+        Gets the minimum PWM level for servo
+        This corresponds to position -1
+        The value is an integer where 2000 represents a 1 ms servo burst
+        e.g.
+        2000  -> 1 ms servo burst, typical shortest burst
+        4000  -> 2 ms servo burst, typical longest burst
+        3000  -> 1.5 ms servo burst, typical centre
+        5000  -> 2.5 ms servo burst, higher than typical longest burst
+        """
+        self._check_servo(n_servo)
+        function = getattr(self.ub, "GetServoMinimum%d" % n_servo)
+        return function()
+
+    def get_servo_max(self, n_servo):
+        """pwmLevel = get_servo_max(n_servo)
+
+        Gets the maximum PWM level for servo output #2
+        This corresponds to position +1
+        The value is an integer where 2000 represents a 1 ms servo burst
+        e.g.
+        2000  -> 1 ms servo burst, typical shortest burst
+        4000  -> 2 ms servo burst, typical longest burst
+        3000  -> 1.5 ms servo burst, typical centre
+        5000  -> 2.5 ms servo burst, higher than typical longest burst
+        """
+        self._check_servo(n_servo)
+        function = getattr(self.ub, "GetServoMaximum%d" % n_servo)
+        return function()
+
+    def get_servo_startup(self, n_servo):
+        """pwmLevel = get_servo_startup(n_servo)
+
+        Gets the startup PWM level for servo output #1
+        This can be anywhere in the minimum to maximum range
+        The value is an integer where 2000 represents a 1 ms servo burst
+        e.g.
+        2000  -> 1 ms servo burst, typical shortest burst
+        4000  -> 2 ms servo burst, typical longest burst
+        3000  -> 1.5 ms servo burst, typical centre
+        5000  -> 2.5 ms servo burst, higher than typical longest burst
+
+        """
+        self._check_servo(n_servo)
+        function = getattr(self.ub, "GetServoStartup%d" % n_servo)
+        return function()
+
+    def calibrate_servo_position(self, n_servo, pwm_level):
+        """
+        calibrate_servo_position(n_servo, pwm_level)
+
+        Sets the raw PWM level for servo output #1
+        This value can be set anywhere from 0 for a 0% duty cycle to 65535 for a 100% duty cycle
+
+        Setting values outside the range of the servo for extended periods of time can damage the servo
+        NO LIMIT CHECKING IS PERFORMED BY THIS COMMAND!
+        We recommend using the tuning GUI for setting the servo limits for SetServoPosition1 / GetServoPosition1
+
+        The value is an integer where 2000 represents a 1ms servo burst, approximately 3% duty cycle
+        e.g.
+        2000  -> 1 ms servo burst, typical shortest burst, ~3% duty cycle
+        4000  -> 2 ms servo burst, typical longest burst, ~ 6.1% duty cycle
+        3000  -> 1.5 ms servo burst, typical centre, ~4.6% duty cycle
+        5000  -> 2.5 ms servo burst, higher than typical longest burst, ~ 7.6% duty cycle
+        """
+        self._check_servo(n_servo)
+        function = getattr(self.ub, "CalibrateServoPosition%d" % n_servo)
+        return function(pwm_level)
 
 if __name__ == '__main__':
     import time

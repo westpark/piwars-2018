@@ -8,7 +8,6 @@ from .vendor.piborg.ultraborg import UltraBorg
 class RobotError(Exception): pass
 
 
-
 class Robot(object):
 
     max_power_factor = 1
@@ -21,7 +20,7 @@ class Robot(object):
 
     def __init__(self, i2cAddress=0x15):
         self.logger = logging.getLogger("Robot")
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.INFO)
         self.logger.addHandler(logging.StreamHandler())
 
         self.tb = ThunderBorg.ThunderBorg()
@@ -45,15 +44,15 @@ class Robot(object):
         self.tb.MotorsOff()
 
     def _motor1(self, power):
-        self.logger.info("Motor 1 -> %1.2f", power)
+        self.logger.debug("Motor 1 -> %1.2f", power)
         self.tb.SetMotor1(power)
 
     def _motor2(self, power):
-        self.logger.info("Motor 2 -> %1.2f", power)
+        self.logger.debug("Motor 2 -> %1.2f", power)
         self.tb.SetMotor2(power)
 
     def _motors(self, power):
-        self.logger.info("Motors -> %1.2f", power)
+        self.logger.debug("Motors -> %1.2f", power)
         if power == 0:
             self.tb.MotorsOff()
         else:

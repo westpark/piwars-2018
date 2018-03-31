@@ -43,7 +43,6 @@ class Remote(object):
 
         old_speeds = self.speeds = 0, 0
         while self.running:
-            logger.info("Running...")
             self.controller.run_once()
             if self.speeds != old_speeds:
                 left, right = self.speeds

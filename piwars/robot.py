@@ -97,6 +97,8 @@ class Robot(object):
     def __exit__(self, *args):
         self.logger.info("Shutting down")
         self.tb.MotorsOff()
+        for servo in self.servos:
+            servo.position = 0
 
     def _motor1(self, power):
         self.logger.debug("Motor 1 -> %1.2f", power)

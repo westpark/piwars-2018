@@ -76,17 +76,20 @@ class Joystick(object):
         self._joystick.init()
         self._stopped = False
 
+    def run_once(self):
+        for event in pygame.event.get():
+            if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.05:
+                handler = self.stick_handlers.get(event.axis)
+            elif event.type == pygame.JOYBUTTONDOWN:
+                handler = self.button_handlers.get(event.button)
+            else:
+                handler = None
+            if handler:
+                function = getattr(self, "handle_%s" % handler, None)
+                if function:
+                    logger.info("%s for %s", function, event)
+                    function(event)
+
     def run(self):
         while not self._stopped:
-            for event in pygame.event.get():
-                if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.05:
-                    handler = self.stick_handlers.get(event.axis)
-                elif event.type == pygame.JOYBUTTONDOWN:
-                    handler = self.button_handlers.get(event.button)
-                else:
-                    handler = None
-                if handler:
-                    function = getattr(self, "handle_%s" % handler, None)
-                    if function:
-                        logger.info("%s for %s", function, event)
-                        function(event)
+            self.run_once()

@@ -37,14 +37,6 @@ pygame.init()
 # [Start] - button 3
 #
 
-# Settings for the joystick
-axisUpDown = 1                          # Joystick axis to read for up / down position
-axisLeftRight = 2                       # Joystick axis to read for left / right position
-buttonSlow = 8                          # Joystick button number for driving slowly whilst held (L2)
-slowFactor = 0.5                        # Speed to slow to when the drive slowly button is held, e.g. 0.5 would be half speed
-buttonFastTurn = 9                      # Joystick button number for turning fast (R2)
-buttonStop = 13
-
 class Joystick(object):
 
     stick_handlers = {
@@ -55,15 +47,23 @@ class Joystick(object):
         3 : "right_stick_v",
     }
     button_handlers = {
-        4 : "left_buttons_n",
-        5 : "left_buttons_e",
-        6 : "left_buttons_s",
-        7 : "left_buttons_w",
+        4 : "left_quadrant_n",
+        5 : "left_quadrant_e",
+        6 : "left_quadrant_s",
+        7 : "left_quadrant_w",
 
-        12 : "right_buttons_n",
-        13 : "right_buttons_e",
-        14 : "right_buttons_s",
-        15 : "right_buttons_w",
+        12 : "right_quadrant_n",
+        13 : "right_quadrant_e",
+        14 : "right_quadrant_s",
+        15 : "right_quadrant_w",
+
+        0 : "select",
+        3 : "start"
+
+        10 : "front_left_upper",
+        8 : "front_left_lower",
+        11 : "front_right_upper",
+        9 : "front_right_lower",
     }
 
     def __init__(self):
@@ -76,53 +76,17 @@ class Joystick(object):
         self._joystick.init()
         self._stopped = False
 
-    def handle_left_stick_h(self, event):
-        pass
-
-    def handle_left_stick_v(self, event):
-        pass
-
-    def handle_right_stick_h(self, event):
-        pass
-
-    def handle_right_stick_v(self, event):
-        pass
-
-    def handle_left_buttons_n(self, event):
-        pass
-
-    def handle_left_buttons_e(self, event):
-        pass
-
-    def handle_left_buttons_s(self, event):
-        pass
-
-    def handle_left_buttons_w(self, event):
-        pass
-
-    def handle_right_buttons_n(self, event):
-        pass
-
-    def handle_right_buttons_e(self, event):
-        pass
-
-    def handle_right_buttons_s(self, event):
-        pass
-
-    def handle_right_buttons_w(self, event):
-        pass
-
     def run(self):
         while not self._stopped:
             for event in pygame.event.get():
-                logger.info(event)
                 if event.type == pygame.JOYAXISMOTION and abs(event.value) > 0.05:
                     handler = self.stick_handlers.get(event.axis)
                 elif event.type == pygame.JOYBUTTONDOWN:
                     handler = self.button_handlers.get(event.button)
+                else:
+                    handler = None
                 if handler:
-                    function = getattr(self, "handle_%s" % handler)
-                    function(event)
-
-j = Joystick()
-j.run()
+                    function = getattr(self, "handle_%s" % handler, None)
+                    if function:
+                        logger.info("%s for %s", function, event)
+                        function(event)

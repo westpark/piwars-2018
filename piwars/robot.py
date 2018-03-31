@@ -86,7 +86,7 @@ class Robot(object):
         self.ub = UltraBorg.UltraBorg()
         self.ub.Init()
 
-        self.servos = [Servo(n) for n in range(1, 5)]
+        self.servos = [Servo(self.ub,n) for n in range(1, 5)]
 
     def __enter__(self):
         return self

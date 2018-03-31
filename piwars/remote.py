@@ -1,8 +1,12 @@
 import os, sys
+import logging
 import time
 
 from . import robot
 from . import joystick
+
+logger = logging.getLogger("piwars.remote")
+logger.addHandler(logging.StreamHandler())
 
 class Remote(object):
 
@@ -12,36 +16,34 @@ class Remote(object):
 
         self.speeds = 0, 0
         self.running = True
-        self.controller.handle_left_axis_h = self.handle_axis_move
-        self.controller.handle_left_axis_v = self.handle_axis_move
-        self.controller.handle_right_quadrant_w = self.stop
+        self.controller.handle_left_stick_h = self.handle_axis_left_right
+        self.controller.handle_right_stick_v = self.handle_axis_up_down
+        self.controller.handle_right_quadrant_e = self.stop
 
-    def handle_axis_move(self, event):
+    def handle_axis_up_down(self, event):
+        self.speeds = (-event.value, -event.value)
+
+    def handle_axis_left_right(self, event):
         left, right = self.speeds
-        if event.axis == axisUpDown:
-            left = right = -event.value
-
-        elif event.axis == axisLeftRight:
-            movement = event.value
-            if abs(movement) > 0.1:
-                if movement < 0:
-                    left = -right * abs(movement)
-                elif movement > 0:
-                    right = -left * abs(movement)
-                else:
-                    left = right = max(left, right)
-
+        movement = event.value
+        if abs(movement) > 0.1:
+            if movement < 0:
+                left = -right * abs(movement)
+            elif movement > 0:
+                right = -left * abs(movement)
+            else:
+                left = right = max(left, right)
         self.speeds = left, right
 
-    def stop(self):
+    def stop(self, _):
         self.running = False
 
     def start(self):
-        upDown = 0.0
-        leftRight = 0.0
+        interval = 0.1
 
         old_speeds = self.speeds = 0, 0
         while self.running:
+            logger.info("Running...")
             self.controller.run_once()
             if self.speeds != old_speeds:
                 left, right = self.speeds
@@ -50,6 +52,8 @@ class Remote(object):
             time.sleep(interval)
 
 if __name__ == '__main__':
+    logging.getLogger("piwars.joystick").setLevel(logging.DEBUG)
+    logging.getLogger("piwars.remote").setLevel(logging.DEBUG)
     with robot.Robot() as robbie:
         controller = joystick.Joystick()
         remote = Remote(robbie, controller)

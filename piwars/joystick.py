@@ -6,7 +6,7 @@ import time
 #
 # Create a logger without any handlers.
 #
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("piwars.joystick")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
@@ -58,7 +58,7 @@ class Joystick(object):
         15 : "right_quadrant_w",
 
         0 : "select",
-        3 : "start"
+        3 : "start",
 
         10 : "front_left_upper",
         8 : "front_left_lower",
@@ -72,9 +72,12 @@ class Joystick(object):
         while pygame.joystick.get_count() < 1:
             time.sleep(0.1)
         self._joystick = pygame.joystick.Joystick(0)
-        logger.debug("Found", self._joystick.get_name())
+        logger.debug("Found %s", self._joystick.get_name())
         self._joystick.init()
         self._stopped = False
+
+    def stop(self):
+        self._stopped = True
 
     def run_once(self):
         for event in pygame.event.get():
@@ -83,7 +86,7 @@ class Joystick(object):
             elif event.type == pygame.JOYBUTTONDOWN:
                 handler = self.button_handlers.get(event.button)
             else:
-                handler = None
+                handler = "default"
             if handler:
                 function = getattr(self, "handle_%s" % handler, None)
                 if function:
@@ -93,3 +96,13 @@ class Joystick(object):
     def run(self):
         while not self._stopped:
             self.run_once()
+
+if __name__ == '__main__':
+    def handle_default(event):
+        logger.debug("Default handler for %s", event)
+
+    logger.setLevel(logging.DEBUG)
+    controller = Joystick()
+    controller.handle_default = handle_default
+    controller.handle_right_quadrant_e = lambda event: controller.stop()
+    controller.run()

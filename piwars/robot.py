@@ -23,10 +23,13 @@ class Servo(object):
         return function()
     raw_position = property(_get_raw_position)
 
+    def _get_position(self):
+        function = self._ub_function("GetServoPosition")
+        return function()
     def _set_position(self, position):
         function = self._ub_function("SetServoPosition")
         return function(position)
-    position = property(None, _set_position)
+    position = property(_get_position, _set_position)
 
     def _get_min(self):
         function = self._ub_function("GetServoMinimum")

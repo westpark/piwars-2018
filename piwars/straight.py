@@ -61,5 +61,45 @@ def approach2():
                     print("Moving left")
                     right_increment = power_increment
 
+def approach3():
+    """Track the left hand side and *reduce* power (so we can run at full)
+
+    * Track the left-hand side, not the difference
+    * To turn right, reduce the right power so we can usually run at full
+
+    EXPERIENCE: the trouble with this approach is that if the robot starts
+    to slew -- and it does! -- then the left distance will not get smaller even
+    though the robot is turning into the left side. That said, the right side
+    will increase.
+    """
+    side_threshold_mm = 150
+    left_power = right_power = 0.75
+    power_increment = 0.05
+    left_increment = right_increment = 0
+    time_increment = 0.1
+
+    t1 = time.time() + 10
+    with robot.Robot() as robbie:
+        while time.time() < t1:
+            robbie.forwards(left_power + left_increment, right_power + right_increment)
+            time.sleep(time_increment)
+
+            left_mm = robbie.get_left_mm()
+            right_mm = robbie.get_right_mm()
+            front_mm = robbie.get_front_mm()
+            print("Left: %4.2f; Right: %4.2f; Front: %4.2f" % (left_mm, right_mm, front_mm))
+            if front_mm < 400:
+                break
+            if left_mm < side_threshold_mm:
+                print("About to move right")
+                left_increment = +power_increment
+                right_increment = -power_increment
+            elif right_mm < side_threshold_mm:
+                print("About to move left")
+                right_increment = +power_increment
+                left_increment = -power_increment
+            else:
+                left_increment = right_increment = 0
+
 if __name__ == '__main__':
-    approach1(*sys.argv[1:])
+    approach3(*sys.argv[1:])

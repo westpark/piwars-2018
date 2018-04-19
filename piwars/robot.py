@@ -68,7 +68,11 @@ class Robot(object):
     front = -1
     back = +1
 
-    degree15_secs = 0.53
+    #
+    # How many seconds does it take to describe a full rotation at full power?
+    #
+    full_power_degree360_secs = 2.12
+
     cm10_secs = 0.671
 
     def __init__(self, i2cAddress=0x15):
@@ -151,23 +155,33 @@ class Robot(object):
         self._motor1(self.front * self.max_power_factor * right_power)
         self._motor2(self.front * self.max_power_factor * left_power)
 
-    def turn_right(self, power=default_power, n_secs=None):
-        self.go(power, -power)
+    def turn_right(self, n_secs=None, power=default_power):
+        self.go(+power, -power)
         if n_secs is not None:
             time.sleep(n_secs)
             self.stop()
 
-    def turn_left(self, power=default_power):
+    def turn_left(self, n_secs=None, power=default_power):
         self.go(-power, +power)
+        if n_secs is not None:
+            time.sleep(n_secs)
+            self.stop()
 
     def stop(self):
         self._motors(0)
 
-    def turn_through(self, n_degrees):
-        self.turn_right()
-        n_secs = (n_degrees / 15) * self.degree15_secs
-        time.sleep(n_secs)
-        #~ self.stop()
+    def turn_through(self, n_degrees, power=default_power):
+        #
+        # In fact, at full power we slightly overshoot so we probably
+        # want to dampen the number a little as we approach higher power
+        #
+        dampener_factor = 0.85 if power > 0.5 else 1
+        n_secs = dampener_factor * (abs(n_degrees) / 360) * self.full_power_degree360_secs / power
+        print("Turning through", n_degrees, "for", n_secs)
+        if n_degrees > 0:
+            self.turn_right(n_secs, power)
+        else:
+            self.turn_left(n_secs, power)
 
     def forwards_for(self, n_cms):
         self.forwards()

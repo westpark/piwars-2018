@@ -73,7 +73,10 @@ class Robot(object):
     #
     full_power_degree360_secs = 2.12
 
-    cm10_secs = 0.671
+    #
+    # How many seconds does it take to move 10cm at full speed?
+    #
+    full_power_cm10_secs = 0.14
 
     def __init__(self, i2cAddress=0x15):
         self.logger = logging.getLogger("Robot")
@@ -152,8 +155,11 @@ class Robot(object):
             self._motor2(self.back * self.max_power_factor * lpower)
 
     def go(self, left_power=default_power, right_power=default_power):
-        self._motor1(self.front * self.max_power_factor * right_power)
-        self._motor2(self.front * self.max_power_factor * left_power)
+        if lpower == rpower:
+            self._motors(self.front * self.max_power_factor * left_power)
+        else:
+            self._motor1(self.front * self.max_power_factor * right_power)
+            self._motor2(self.front * self.max_power_factor * left_power)
 
     def turn_right(self, n_secs=None, power=default_power):
         self.go(+power, -power)
@@ -170,22 +176,33 @@ class Robot(object):
     def stop(self):
         self._motors(0)
 
+    def dampener(self, power):
+        #
+        # In fact, at full power we slightly overshoot and at low power we
+        # slightly undershoot so we want to dampen the number a little as
+        # we approach higher power and boost it a little lower down
+        #
+        if power <= 0.3:
+            return 1.15
+        elif power <= 0.5:
+            return 1.0
+        else:
+            return 0.85
+
     def turn_through(self, n_degrees, power=default_power):
-        #
-        # In fact, at full power we slightly overshoot so we probably
-        # want to dampen the number a little as we approach higher power
-        #
-        dampener_factor = 0.85 if power > 0.5 else 1
-        n_secs = dampener_factor * (abs(n_degrees) / 360) * self.full_power_degree360_secs / power
+        n_secs = self.dampener(power) * (abs(n_degrees) / 360) * self.full_power_degree360_secs / power
         print("Turning through", n_degrees, "for", n_secs)
         if n_degrees > 0:
             self.turn_right(n_secs, power)
         else:
             self.turn_left(n_secs, power)
 
-    def forwards_for(self, n_cms):
-        self.forwards()
-        n_secs = (n_cms / 10) * self.cm10_secs
+    def move_for(self, n_cms, power=default_power):
+        n_secs = self.dampener(power) * (abs(n_cms) / 10) * self.full_power_cm10_secs / power
+        if n_cms > 0:
+            self.forwards(power, power)
+        else:
+            self.backwards(power, power)
         time.sleep(n_secs)
         self.stop()
 

@@ -155,7 +155,7 @@ class Robot(object):
             self._motor2(self.back * self.max_power_factor * lpower)
 
     def go(self, left_power=default_power, right_power=default_power):
-        if lpower == rpower:
+        if left_power == right_power:
             self._motors(self.front * self.max_power_factor * left_power)
         else:
             self._motor1(self.front * self.max_power_factor * right_power)
@@ -191,7 +191,6 @@ class Robot(object):
 
     def turn_through(self, n_degrees, power=default_power):
         n_secs = self.dampener(power) * (abs(n_degrees) / 360) * self.full_power_degree360_secs / power
-        print("Turning through", n_degrees, "for", n_secs)
         if n_degrees > 0:
             self.turn_right(n_secs, power)
         else:

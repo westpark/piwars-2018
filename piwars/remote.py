@@ -14,6 +14,7 @@ class Remote(object):
         self.robbie = robbie
         self.controller = controller
 
+        self.power_factor = 0.75
         self.speeds = 0, 0
         self.running = True
         self.controller.handle_left_stick_v = self.handle_axis_up_down
@@ -21,7 +22,10 @@ class Remote(object):
         self.controller.handle_right_quadrant_e = self.stop
 
     def handle_axis_up_down(self, event):
-        self.speeds = (-event.value, -event.value)
+        power = event.value
+        if abs(power) < 0.25:
+            power = 0
+        self.speeds = (-power * self.power_factor, -power * self.power_factor)
 
     def handle_axis_left_right(self, event):
         left, right = self.speeds

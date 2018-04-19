@@ -23,8 +23,8 @@ def approach1():
             front_mm = robbie.get_front_mm()
             diff_mm = left_mm - right_mm
             print("Left: %4.2f; Right: %4.2f; Front: %4.2f; diff_mm %4.2f" % (left_mm, right_mm, front_mm, diff_mm))
-            if front_mm < 400:
-                break
+            if front_mm < 700:
+                return
             if diff_mm > -5:
                 print("Moving left")
                 right_increment = power_increment
@@ -74,7 +74,7 @@ def approach3():
     """
     side_threshold_mm = 150
     left_power = right_power = 0.75
-    power_increment = 0.05
+    power_increment = 0.1
     left_increment = right_increment = 0
     time_increment = 0.1
 
@@ -101,5 +101,54 @@ def approach3():
             else:
                 left_increment = right_increment = 0
 
+def approach4():
+    """Track the left hand side and *reduce* power (so we can run at full)
+
+    * Track the differential of the left-hand side, not the left-right difference
+    * To turn right, reduce the right power so we can usually run at full
+    """
+    dleft_threshold_mm = dright_threshold_mm = 3 ## if we've moved by this much, go the other way
+    base_power = .75
+    power_increment = base_power * 0.2
+    left_power = right_power = base_power
+    left_increment = right_increment = 0
+    time_increment = 0.1
+
+    t1 = time.time() + 10
+    with robot.Robot() as robbie:
+        previous_left_mm = left_mm = robbie.get_left_mm()
+        previous_right_mm = right_mm = robbie.get_right_mm()
+        while time.time() < t1:
+            robbie.forwards(left_power + left_increment, right_power + right_increment)
+            time.sleep(time_increment)
+
+            front_mm = robbie.get_front_mm()
+            left_mm = robbie.get_left_mm()
+            right_mm = robbie.get_right_mm()
+            print("Left: %4.2f; Right: %4.2f; Front: %4.2f" % (left_mm, right_mm, front_mm))
+            if front_mm < 700:
+                return
+            dleft_mm = previous_left_mm - left_mm
+            dright_mm = previous_right_mm - right_mm
+            if dleft_mm > dleft_threshold_mm:
+                print("Moved left by %smm; About to move right" % dleft_mm)
+                left_increment = +power_increment
+                right_increment = -power_increment
+            #
+            # Better to let it be guided from the left; otherwise
+            # there's a lot of jinking
+            #
+            #~ elif dright_mm > dright_threshold_mm:
+                #~ print("About to move left")
+                #~ right_increment = +power_increment
+                #~ left_increment = -power_increment
+            else:
+                left_increment = right_increment = 0
+            previous_left_mm = left_mm
+            previous_right_mm = right_mm
+
+def main():
+    return approach4()
+
 if __name__ == '__main__':
-    approach3(*sys.argv[1:])
+    main(*sys.argv[1:])
